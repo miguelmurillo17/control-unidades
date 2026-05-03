@@ -237,3 +237,12 @@ El sistema debe construirse con un stack orientado a **simplicidad, estabilidad 
 ## Filosofía
 
 > El sistema debe adaptarse a la operación real, no obligar a la operación a adaptarse al sistema.
+
+---
+
+## Reglas
+
+- Datos sensibles y de cuentas como usuarios y credenciales se guardarán en el archivo secretos.py, que no debe ser versionado.
+- El código debe ser claro y legible, con comentarios explicativos donde sea necesario, clean code, y siguiendo las mejores prácticas de Django y Python.
+- El sistema debe ser robusto ante errores de usuario, permitiendo registrar movimientos aunque haya inconsistencias, y marcándolos claramente para revisión posterior.
+- El sistema debe ser fácil de desplegar en un servidor Ubuntu, con instrucciones claras y sin dependencias complejas.
