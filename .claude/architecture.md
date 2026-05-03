@@ -11,14 +11,13 @@ Django project : config
 
 ```
 config/          ← Configuración del proyecto Django
-apps/
-    core/
-        usuarios/      ← Usuarios del sistema y roles
-    logistica/
-        sucursales/    ← Catálogo de sucursales
-        unidades/      ← Tractores y remolques
-        movimientos/   ← Evento central del sistema
-        inspecciones/  ← Checklists y evidencia operativa
+core/
+    usuarios/      ← Usuarios del sistema y roles
+logistica/
+    sucursales/    ← Catálogo de sucursales
+    unidades/      ← Tractores y remolques
+    movimientos/   ← Evento central del sistema
+    inspecciones/  ← Checklists y evidencia operativa
 ```
 
 ---
@@ -150,7 +149,7 @@ class Inspeccion(models.Model):
 class DetalleInspeccion(models.Model):
     inspeccion     = models.ForeignKey(Inspeccion, on_delete=models.CASCADE)
     punto_revision = models.CharField(max_length=100)
-    resultado      = models.CharField(max_length=20)   # "OK" | "NO" | "NA"
+    resultado      = models.CharField(max_length=20)   # "SI" | "NO" | "NA"
     comentario     = models.TextField(blank=True)
 ```
 

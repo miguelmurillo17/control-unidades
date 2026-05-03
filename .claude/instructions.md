@@ -23,13 +23,13 @@ El sistema debe permitir:
 
 ## Principios de Diseño
 
-| # | Principio | Descripción |
-|---|-----------|-------------|
-| 1 | **Operación primero** | Captura rápida (<1 min), interfaces simples, evitar fricción en caseta/patio |
-| 2 | **Trazabilidad completa** | Nunca editar ni borrar movimientos; todo cambio se registra como nuevo evento |
-| 3 | **Registrar realidad** | Permitir guardar aunque haya errores; marcar inconsistencias en lugar de bloquear |
-| 4 | **Historial inmutable** | El pasado no se modifica; solo se agregan eventos |
-| 5 | **Simplicidad** | No optimizar rutas, no automatizar decisiones; solo registrar y mostrar |
+| #   | Principio                 | Descripción                                                                       |
+| --- | ------------------------- | --------------------------------------------------------------------------------- |
+| 1   | **Operación primero**     | Captura rápida (<1 min), interfaces simples, evitar fricción en caseta/patio      |
+| 2   | **Trazabilidad completa** | Nunca editar ni borrar movimientos; todo cambio se registra como nuevo evento     |
+| 3   | **Registrar realidad**    | Permitir guardar aunque haya errores; marcar inconsistencias en lugar de bloquear |
+| 4   | **Historial inmutable**   | El pasado no se modifica; solo se agregan eventos                                 |
+| 5   | **Simplicidad**           | No optimizar rutas, no automatizar decisiones; solo registrar y mostrar           |
 
 ---
 
@@ -154,13 +154,19 @@ Cada PDF generado debe:
 
 ## Roles
 
-| Rol | Acceso |
-|-----|--------|
-| `CASETA` | Captura de movimientos e inspecciones |
-| `TRAFICO` | Consulta de historial y estado |
-| `ADMIN` | Configuración del sistema |
+| Rol       | Acceso                                |
+| --------- | ------------------------------------- |
+| `CASETA`  | Captura de movimientos e inspecciones |
+| `TRAFICO` | Consulta de historial y estado        |
+| `ADMIN`   | Configuración del sistema             |
 
 > No implementar permisos complejos más allá de estos tres roles.
+
+---
+
+## Arquitectura
+
+Se encuentra en el archivo arquitecture.md.
 
 ---
 
@@ -168,21 +174,21 @@ Cada PDF generado debe:
 
 El sistema debe construirse con un stack orientado a **simplicidad, estabilidad y fácil despliegue en Ubuntu Server**.
 
-| Capa | Tecnología | Notas |
-|------|-----------|-------|
-| **Backend** | Django + Python 3.11+ | Django REST Framework solo si se requiere API |
-| **Base de datos** | PostgreSQL | SQLite permitido únicamente en desarrollo local |
-| **Frontend** | Django Templates + HTMX | JavaScript mínimo, solo cuando sea necesario |
-| **Estilos** | CSS simple / Tailwind CSS (opcional) | Priorizar funcionalidad sobre diseño visual |
-| **Generación de PDF** | WeasyPrint (preferido) | Alternativa: wkhtmltopdf |
-| **Autenticación** | `AbstractUser` nativo de Django | Sin librerías externas de auth |
-| **Servidor de app** | Gunicorn | Solo producción |
-| **Reverse proxy** | Nginx | Sirve archivos estáticos y hace proxy a Gunicorn |
-| **SO objetivo** | Ubuntu Server LTS | On-premise o VPS (DigitalOcean, AWS, etc.) |
-| **Archivos estáticos** | `collectstatic` + Nginx | No usar whitenoise en producción |
-| **Configuración** | Variables de entorno via `python-decouple` | Archivo `.env` en raíz del proyecto |
-| **Entorno virtual** | `venv` | Obligatorio |
-| **Procesos (prod)** | `systemd` o `supervisor` | Para mantener Gunicorn activo |
+| Capa                   | Tecnología                                 | Notas                                            |
+| ---------------------- | ------------------------------------------ | ------------------------------------------------ |
+| **Backend**            | Django + Python 3.11+                      | Django REST Framework solo si se requiere API    |
+| **Base de datos**      | PostgreSQL                                 | SQLite permitido únicamente en desarrollo local  |
+| **Frontend**           | Django Templates + HTMX                    | JavaScript mínimo, solo cuando sea necesario     |
+| **Estilos**            | CSS simple / Tailwind CSS (opcional)       | Priorizar funcionalidad sobre diseño visual      |
+| **Generación de PDF**  | WeasyPrint (preferido)                     | Alternativa: wkhtmltopdf                         |
+| **Autenticación**      | `AbstractUser` nativo de Django            | Sin librerías externas de auth                   |
+| **Servidor de app**    | Gunicorn                                   | Solo producción                                  |
+| **Reverse proxy**      | Nginx                                      | Sirve archivos estáticos y hace proxy a Gunicorn |
+| **SO objetivo**        | Ubuntu Server LTS                          | On-premise o VPS (DigitalOcean, AWS, etc.)       |
+| **Archivos estáticos** | `collectstatic` + Nginx                    | No usar whitenoise en producción                 |
+| **Configuración**      | Variables de entorno via `python-decouple` | Archivo `.env` en raíz del proyecto              |
+| **Entorno virtual**    | `venv`                                     | Obligatorio                                      |
+| **Procesos (prod)**    | `systemd` o `supervisor`                   | Para mantener Gunicorn activo                    |
 
 ### Filosofía Técnica
 
