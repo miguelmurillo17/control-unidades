@@ -176,7 +176,7 @@ El sistema debe construirse con un stack orientado a **simplicidad, estabilidad 
 
 | Capa                   | Tecnología                                 | Notas                                            |
 | ---------------------- | ------------------------------------------ | ------------------------------------------------ |
-| **Backend**            | Django + Python 3.11+                      | Django REST Framework solo si se requiere API    |
+| **Backend**            | Django + Python 3.12.0                     | Django REST Framework solo si se requiere API    |
 | **Base de datos**      | PostgreSQL                                 | SQLite permitido únicamente en desarrollo local  |
 | **Frontend**           | Django Templates + HTMX                    | JavaScript mínimo, solo cuando sea necesario     |
 | **Estilos**            | CSS simple / Tailwind CSS (opcional)       | Priorizar funcionalidad sobre diseño visual      |
