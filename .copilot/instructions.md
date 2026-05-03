@@ -1,19 +1,14 @@
-Proyecto
-
-Sistema de Control y Trazabilidad de Unidades
+# Sistema de Control y Trazabilidad de Unidades
 
 Sistema web para monitorear unidades logísticas (tractores y remolques) mediante el registro de movimientos e inspecciones realizadas en sucursales.
 
-El sistema está orientado a operación real en patios/casetas.
-No administra mercancía ni embarques.
+> **Alcance:** El sistema está orientado a operación real en patios/casetas. **No** administra mercancía ni embarques.
 
-⸻
+---
 
-Objetivo del Sistema
+## Objetivo
 
-Responder en todo momento:
-
-¿Dónde está cada unidad y cuál fue su último movimiento?
+Responder en todo momento: **¿Dónde está cada unidad y cuál fue su último movimiento?**
 
 El sistema debe permitir:
 
@@ -24,239 +19,215 @@ El sistema debe permitir:
 - Consultar historial completo
 - Visualizar estado por sucursal
 
-⸻
+---
 
-Principios de Diseño
+## Principios de Diseño
 
-1. Operación primero
+| # | Principio | Descripción |
+|---|-----------|-------------|
+| 1 | **Operación primero** | Captura rápida (<1 min), interfaces simples, evitar fricción en caseta/patio |
+| 2 | **Trazabilidad completa** | Nunca editar ni borrar movimientos; todo cambio se registra como nuevo evento |
+| 3 | **Registrar realidad** | Permitir guardar aunque haya errores; marcar inconsistencias en lugar de bloquear |
+| 4 | **Historial inmutable** | El pasado no se modifica; solo se agregan eventos |
+| 5 | **Simplicidad** | No optimizar rutas, no automatizar decisiones; solo registrar y mostrar |
 
-- Captura rápida (menos de 1 minuto)
-- Interfaces simples
-- Evitar fricción en caseta/patio
+---
 
-2. Trazabilidad completa
+## Modelo de Datos
 
-- Nunca editar movimientos
-- Nunca borrar movimientos
-- Todo cambio se registra como nuevo evento
+### `Unidad`
 
-3. Registrar realidad > forzar reglas
+Representa un tractor o remolque.
 
-- Permitir registrar aunque haya errores
-- Marcar inconsistencias en lugar de bloquear
+```python
+class Unidad:
+    numero_economico: str       # Identificador único
+    tipo: str                   # "TRACTOR" | "REMOLQUE"
+    sucursal_actual: str        # Derivada del último movimiento válido
+    estado_actual: str          # Derivado del último movimiento válido
+```
 
-4. Historial inmutable
+### `Movimiento` _(entidad principal)_
 
-- El pasado no se modifica
-- Solo se agregan eventos
+Representa cualquier evento que ocurre a una unidad.
 
-5. Simplicidad
+```python
+class Movimiento:
+    unidad: Unidad
+    tipo_movimiento: str        # "ENTRADA" | "SALIDA" | "TALLER_ENTRADA" | "TALLER_SALIDA" | "CORRECCION"
+    sucursal: str
+    fecha_hora_evento: datetime
+    fecha_hora_registro: datetime
+    usuario: str
+    observaciones: str
+    inconsistente: bool         # True si rompe la lógica esperada
+    cancelado: bool             # True si fue anulado lógicamente
+    referencia_movimiento: int  # Opcional; apunta al movimiento original (usado en CORRECCION)
+```
 
-- No optimizar rutas
-- No automatizar decisiones
-- Solo registrar y mostrar
-
-⸻
-
-Concepto Central
-
-El sistema se basa en:
-
-Eventos (Movimientos)
-
-Todo lo que sucede a una unidad es un evento.
-
-⸻
-
-Modelo Conceptual
-
-Unidad
-
-Representa tractor o remolque.
-
-Campos clave:
-
-- numero_economico
-- tipo (TRACTOR / REMOLQUE)
-- sucursal_actual (derivada)
-- estado_actual (derivado)
-
-⸻
-
-Movimiento (Entidad principal)
-
-Representa eventos como:
-
-- ENTRADA
-- SALIDA
-- TALLER_ENTRADA
-- TALLER_SALIDA
-- CORRECCION
-
-Campos clave:
-
-- unidad
-- tipo_movimiento
-- sucursal
-- fecha_hora_evento
-- fecha_hora_registro
-- usuario
-- observaciones
-- inconsistente (bool)
-- cancelado (bool)
-- referencia_movimiento (opcional)
-
-⸻
-
-Inspeccion
+### `Inspeccion`
 
 Checklist asociado a un movimiento.
 
-- movimiento
-- resultado_general
-- observaciones
+```python
+class Inspeccion:
+    movimiento: Movimiento
+    resultado_general: str
+    observaciones: str
+```
 
-⸻
+### `DetalleInspeccion`
 
-DetalleInspeccion
+```python
+class DetalleInspeccion:
+    inspeccion: Inspeccion
+    punto_revision: str
+    resultado: str
+    comentario: str
+```
 
-- inspeccion
-- punto_revision
-- resultado
-- comentario
+---
 
-⸻
+## Reglas de Negocio
 
-Reglas Clave
+### Inmutabilidad de movimientos
 
-Movimientos
+- Los movimientos **nunca** se editan ni eliminan
+- Solo pueden marcarse como cancelados: `cancelado = True`
+- La cancelación es lógica y no borra el registro del historial
 
-- Son inmutables
-- No se editan
-- No se eliminan
-- Solo se pueden cancelar (cancelado = True)
+### Correcciones
 
-⸻
+Los errores se corrigen creando un nuevo movimiento:
 
-Correcciones
+```python
+# ✅ CORRECTO
+Movimiento(tipo_movimiento="CORRECCION", referencia_movimiento=id_original)
 
-Los errores se manejan creando nuevos movimientos:
+# ❌ NUNCA hacer esto
+movimiento_original.campo = nuevo_valor
+```
 
-- tipo = CORRECCION
-- referencia al movimiento original
+### Cálculo del estado actual
 
-Nunca modificar el movimiento original.
+```python
+def get_estado_actual(unidad):
+    movimientos = Movimiento.objects.filter(
+        unidad=unidad,
+        cancelado=False       # 1. Ignorar cancelados
+    ).order_by("-fecha_hora_evento")
 
-⸻
+    ultimo = movimientos.first()  # 2. Tomar el más reciente
+    return derivar_estado(ultimo) # 3. Derivar estado
+```
 
-Cancelación lógica
+> **Nunca** depender de un campo editable para calcular el estado.
 
-movimiento.cancelado = True
+### Inconsistencias
 
-- No afecta historial
-- No se usa para calcular estado
+Cuando un movimiento rompe la lógica esperada (ej. entrada sin salida previa), se guarda con `inconsistente = True`. **El sistema no bloquea el guardado.**
 
-⸻
+---
 
-Estado actual
+## Comportamiento de UX ante Inconsistencias
 
-Se calcula:
+Mostrar advertencia y permitir continuar:
 
-1. Ignorar movimientos cancelados
-2. Tomar el último movimiento válido
-3. Derivar estado
+```
+⚠️  Esta unidad no tiene salida previa registrada.
+    Puedes continuar y corregir posteriormente.
+    [Cancelar]  [Continuar de todas formas]
+```
 
-Nunca depender de un campo editable.
+---
 
-⸻
+## PDFs de Inspección
 
-Inconsistencias
+Cada PDF generado debe:
 
-Cuando un movimiento rompe lógica esperada:
+- Tener **folio único**
+- Incluir unidad, fecha y sucursal
+- Servir como **evidencia operativa**
+- Generarse **desde el sistema** (no con herramientas externas)
 
-movimiento.inconsistente = True
+---
 
-Ejemplo:
+## Roles
 
-- entrada sin salida previa
-- cambios fuera de secuencia
+| Rol | Acceso |
+|-----|--------|
+| `CASETA` | Captura de movimientos e inspecciones |
+| `TRAFICO` | Consulta de historial y estado |
+| `ADMIN` | Configuración del sistema |
 
-El sistema debe permitir guardar.
+> No implementar permisos complejos más allá de estos tres roles.
 
-⸻
+---
 
-UX / Comportamiento
+## Stack Tecnológico
 
-Cuando haya inconsistencias:
+El sistema debe construirse con un stack orientado a **simplicidad, estabilidad y fácil despliegue en Ubuntu Server**.
 
-- Mostrar advertencia
-- Permitir continuar
+| Capa | Tecnología | Notas |
+|------|-----------|-------|
+| **Backend** | Django + Python 3.11+ | Django REST Framework solo si se requiere API |
+| **Base de datos** | PostgreSQL | SQLite permitido únicamente en desarrollo local |
+| **Frontend** | Django Templates + HTMX | JavaScript mínimo, solo cuando sea necesario |
+| **Estilos** | CSS simple / Tailwind CSS (opcional) | Priorizar funcionalidad sobre diseño visual |
+| **Generación de PDF** | WeasyPrint (preferido) | Alternativa: wkhtmltopdf |
+| **Autenticación** | `AbstractUser` nativo de Django | Sin librerías externas de auth |
+| **Servidor de app** | Gunicorn | Solo producción |
+| **Reverse proxy** | Nginx | Sirve archivos estáticos y hace proxy a Gunicorn |
+| **SO objetivo** | Ubuntu Server LTS | On-premise o VPS (DigitalOcean, AWS, etc.) |
+| **Archivos estáticos** | `collectstatic` + Nginx | No usar whitenoise en producción |
+| **Configuración** | Variables de entorno via `python-decouple` | Archivo `.env` en raíz del proyecto |
+| **Entorno virtual** | `venv` | Obligatorio |
+| **Procesos (prod)** | `systemd` o `supervisor` | Para mantener Gunicorn activo |
 
-Ejemplo:
+### Filosofía Técnica
 
-⚠️ Esta unidad no tiene salida previa registrada
-Puedes continuar y corregir posteriormente
+> El sistema debe poder instalarse en un servidor Ubuntu limpio, con pasos claros y sin dependencias complejas.
 
-⸻
+### Exclusiones del Stack — Copilot NO debe introducir
 
-PDFs
+- Frameworks frontend complejos (React, Angular, Vue)
+- Dependencias innecesarias o difíciles de configurar en Linux
+- Arquitectura de microservicios
+- Colas de tareas (Celery, Redis) en el MVP
+- Servicios externos obligatorios para el funcionamiento base
 
-Los PDFs de inspección deben:
+---
 
-- tener folio único
-- incluir unidad, fecha, sucursal
-- ser evidencia operativa
-- generarse desde el sistema (no externo)
-
-⸻
-
-Roles
-
-Solo tres roles:
-
-- CASETA → captura
-- TRAFICO → consulta
-- ADMIN → configuración
-
-No implementar permisos complejos.
-
-⸻
-
-Lo que NO debe generar Copilot
+## Exclusiones Funcionales — Lo que Copilot NO debe generar
 
 - GPS o tracking en tiempo real
-- Integraciones externas
-- App móvil
+- Integraciones con sistemas externos
+- Aplicación móvil
 - Notificaciones automáticas
 - Lógica de optimización logística
-- Asignación de viajes
-- Workflows complejos
+- Asignación de viajes o workflows complejos
 
-⸻
+---
 
-Enfoque de Desarrollo
+## Prioridad de Desarrollo
 
-Orden de prioridad:
-
+```
 1. Modelo de datos correcto
 2. Movimientos robustos
 3. Consistencia de estado
 4. Flujo de captura rápido
 5. Visualización
 6. Reportes
+```
 
-⸻
+---
 
-Meta del MVP
+## Criterio de Éxito del MVP
 
-El sistema está listo cuando:
+> El sistema está listo cuando se puede identificar la **última ubicación** de cualquier unidad y consultar su **historial completo** sin inconsistencias críticas.
 
-Se puede identificar la última ubicación de cualquier unidad y consultar su historial sin inconsistencias críticas.
+---
 
-⸻
+## Filosofía
 
-Filosofía del Sistema
-
-El sistema debe adaptarse a la operación real, no obligar a la operación a adaptarse al sistema.
-
-⸻
+> El sistema debe adaptarse a la operación real, no obligar a la operación a adaptarse al sistema.
