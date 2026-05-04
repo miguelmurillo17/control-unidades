@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Eliminar unidad — Sistema de Control y Trazabilidad de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="unidades" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <h1>Eliminar unidad</h1>
+        </header>
+
+        <section class="page-body">
+            <div class="form-card">
+                <p class="confirm-text">
+                    ¿Estás seguro de que deseas eliminar la unidad
+                    <strong>{{ object.numero_economico }}</strong> ({{ object.get_tipo_display }})?
+                    Esta acción no se puede deshacer.
+                </p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-actions">
+                        <a href="{% url 'unidades:list' %}" class="btn-secondary-sm">Cancelar</a>
+                        <button type="submit" class="btn-danger">Sí, eliminar</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

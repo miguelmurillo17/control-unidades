@@ -9,19 +9,25 @@ class Sucursal(models.Model):
     activo     = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f'{self.nombre} ({self.ciudad})'
+
 
 class Unidad(models.Model):
     TIPO_CHOICES = [
         ("TRACTOR",  "Tractor"),
         ("REMOLQUE", "Remolque"),
     ]
-    numero_economico = models.CharField(max_length=50, unique=True)
+    numero_economico = models.CharField("Número de unidad", max_length=50, unique=True)
     tipo             = models.CharField(max_length=20, choices=TIPO_CHOICES)
     sucursal_actual  = models.ForeignKey(
         Sucursal, null=True, blank=True, on_delete=models.SET_NULL
     )
     activo     = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.get_tipo_display()} - {self.numero_economico}'
 
 
 class Movimiento(models.Model):

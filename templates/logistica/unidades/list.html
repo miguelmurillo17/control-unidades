@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Unidades — Sistema de Control y Trazabilidad de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="unidades" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div class="page-header-row">
+                <div>
+                    <h1>Unidades</h1>
+                    <p>Registro de tractores y remolques</p>
+                </div>
+                <a href="{% url 'unidades:create' %}" class="btn-primary-sm">+ Nueva unidad</a>
+            </div>
+        </header>
+
+        <section class="page-body">
+            {% if unidades %}
+            <div class="table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Número de unidad</th>
+                            <th>Tipo</th>
+                            <th>Sucursal actual</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in unidades %}
+                        <tr>
+                            <td class="cell-primary">{{ u.numero_economico }}</td>
+                            <td>{{ u.get_tipo_display }}</td>
+                            <td>{{ u.sucursal_actual|default:"—" }}</td>
+                            <td>
+                                {% if u.activo %}
+                                <span class="badge badge-green">Activa</span>
+                                {% else %}
+                                <span class="badge badge-gray">Inactiva</span>
+                                {% endif %}
+                            </td>
+                            <td class="cell-actions">
+                                <a href="{% url 'unidades:update' u.pk %}" class="action-link">Editar</a>
+                                <a href="{% url 'unidades:delete' u.pk %}" class="action-link action-link-danger">Eliminar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No hay unidades registradas.</p>
+                <a href="{% url 'unidades:create' %}" class="btn-primary-sm" style="margin-top:12px">Crear la primera</a>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}

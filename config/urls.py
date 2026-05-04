@@ -25,5 +25,5 @@ urlpatterns = [
     path('', auth_views.LoginView.as_view(redirect_authenticated_user=True), name='login'),
     path('salir/', auth_views.LogoutView.as_view(), name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
-    path('sucursales/', include('logistica.urls')),
+    path('', include('logistica.urls')),
 ]

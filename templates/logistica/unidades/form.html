@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — Sistema de Control y Trazabilidad de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="unidades" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div class="page-header-row">
+                <div>
+                    <h1>{{ titulo }}</h1>
+                </div>
+                <a href="{% url 'unidades:list' %}" class="btn-secondary-sm">Cancelar</a>
+            </div>
+        </header>
+
+        <section class="page-body">
+            <div class="form-card">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="{{ form.numero_economico.id_for_label }}">{{ form.numero_economico.label }}</label>
+                            <input type="text"
+                                   id="{{ form.numero_economico.id_for_label }}"
+                                   name="{{ form.numero_economico.html_name }}"
+                                   value="{{ form.numero_economico.value|default:'' }}"
+                                   class="{% if form.numero_economico.errors %}input-error{% endif %}">
+                            {% if form.numero_economico.errors %}<span class="field-error">{{ form.numero_economico.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.tipo.id_for_label }}">Tipo</label>
+                            <select id="{{ form.tipo.id_for_label }}" name="{{ form.tipo.html_name }}"
+                                    class="{% if form.tipo.errors %}input-error{% endif %}">
+                                <option value="">— Selecciona —</option>
+                                {% for val, label in form.tipo.field.choices %}
+                                {% if val %}
+                                <option value="{{ val }}" {% if form.tipo.value == val %}selected{% endif %}>{{ label }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                            {% if form.tipo.errors %}<span class="field-error">{{ form.tipo.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.sucursal_actual.id_for_label }}">Sucursal actual <span class="field-optional">(opcional)</span></label>
+                            <select id="{{ form.sucursal_actual.id_for_label }}" name="{{ form.sucursal_actual.html_name }}">
+                                <option value="">— Sin asignar —</option>
+                                {% for val, label in form.sucursal_actual.field.choices %}
+                                {% if val %}
+                                <option value="{{ val }}" {% if form.sucursal_actual.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="field field-checkbox">
+                            <label class="checkbox-label">
+                                <input type="checkbox"
+                                       id="{{ form.activo.id_for_label }}"
+                                       name="{{ form.activo.html_name }}"
+                                       {% if form.activo.value %}checked{% endif %}>
+                                Unidad activa
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">{{ accion }}</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

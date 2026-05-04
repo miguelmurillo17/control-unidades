@@ -1,17 +1,31 @@
-from django.urls import path
+from django.urls import include, path
 
 from .views import (
     SucursalListView,
     SucursalCreateView,
     SucursalUpdateView,
     SucursalDeleteView,
+    UnidadListView,
+    UnidadCreateView,
+    UnidadUpdateView,
+    UnidadDeleteView,
 )
 
-app_name = "sucursales"
-
-urlpatterns = [
+sucursales_urls = ([
     path("", SucursalListView.as_view(), name="list"),
     path("nueva/", SucursalCreateView.as_view(), name="create"),
     path("<int:pk>/editar/", SucursalUpdateView.as_view(), name="update"),
     path("<int:pk>/eliminar/", SucursalDeleteView.as_view(), name="delete"),
+], "sucursales")
+
+unidades_urls = ([
+    path("", UnidadListView.as_view(), name="list"),
+    path("nueva/", UnidadCreateView.as_view(), name="create"),
+    path("<int:pk>/editar/", UnidadUpdateView.as_view(), name="update"),
+    path("<int:pk>/eliminar/", UnidadDeleteView.as_view(), name="delete"),
+], "unidades")
+
+urlpatterns = [
+    path("sucursales/", include(sucursales_urls)),
+    path("unidades/", include(unidades_urls)),
 ]
