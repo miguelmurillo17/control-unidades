@@ -16,17 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.http import HttpResponse
 from django.urls import path
 
-
-def dashboard_placeholder(_request):
-    return HttpResponse("Dashboard — próximamente")
-
+from core.usuarios.views import dashboard
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', auth_views.LoginView.as_view(), name='login'),
+    path('', auth_views.LoginView.as_view(redirect_authenticated_user=True), name='login'),
     path('salir/', auth_views.LogoutView.as_view(), name='logout'),
-    path('dashboard/', dashboard_placeholder, name='dashboard'),
+    path('dashboard/', dashboard, name='dashboard'),
 ]

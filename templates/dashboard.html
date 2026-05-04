@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard — Control de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <span class="brand-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="3" width="15" height="13" rx="2"/>
+                    <path d="M16 8h4l3 5v3h-7V8z"/>
+                    <circle cx="5.5" cy="18.5" r="2.5"/>
+                    <circle cx="18.5" cy="18.5" r="2.5"/>
+                </svg>
+            </span>
+            <span>Control de Unidades</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            {% if user.rol == "CASETA" %}
+            <a href="#" class="nav-item active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Registrar movimiento
+            </a>
+            <a href="#" class="nav-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                Mis registros
+            </a>
+            {% elif user.rol == "TRAFICO" %}
+            <a href="#" class="nav-item active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                Estado de unidades
+            </a>
+            <a href="#" class="nav-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                Historial
+            </a>
+            {% elif user.rol == "ADMIN" %}
+            <a href="#" class="nav-item active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                Resumen
+            </a>
+            <a href="#" class="nav-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Usuarios
+            </a>
+            <a href="#" class="nav-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+                </svg>
+                Sucursales
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                <span class="user-role">{{ user.get_rol_display }}</span>
+            </div>
+            <a href="{% url 'logout' %}" class="btn-logout" title="Cerrar sesión">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="page-header">
+            {% if user.rol == "CASETA" %}
+            <h1>Registro de movimientos</h1>
+            <p>Registra entradas, salidas e inspecciones de unidades</p>
+            {% elif user.rol == "TRAFICO" %}
+            <h1>Estado de unidades</h1>
+            <p>Consulta la ubicación y el historial de cada unidad</p>
+            {% elif user.rol == "ADMIN" %}
+            <h1>Resumen del sistema</h1>
+            <p>Vista general de la operación</p>
+            {% else %}
+            <h1>Dashboard</h1>
+            {% endif %}
+        </header>
+
+        <section class="page-body">
+            {% if user.rol == "CASETA" %}
+            <div class="empty-state">
+                <p>El formulario de registro de movimientos irá aquí.</p>
+            </div>
+
+            {% elif user.rol == "TRAFICO" %}
+            <div class="empty-state">
+                <p>El panel de estado de unidades irá aquí.</p>
+            </div>
+
+            {% elif user.rol == "ADMIN" %}
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Unidades activas</span>
+                    <span class="stat-value">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Movimientos hoy</span>
+                    <span class="stat-value">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Sucursales</span>
+                    <span class="stat-value">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Inconsistencias pendientes</span>
+                    <span class="stat-value">—</span>
+                </div>
+            </div>
+
+            {% else %}
+            <div class="empty-state">
+                <p>Tu cuenta no tiene un rol asignado. Contacta al administrador.</p>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+
+</div>
+{% endblock %}
