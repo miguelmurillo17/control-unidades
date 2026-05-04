@@ -1,0 +1,139 @@
+.login-layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    gap: 20px;
+}
+
+/* ── Marca ── */
+.login-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-primary);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -.3px;
+}
+
+.brand-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: var(--color-primary);
+    color: #fff;
+    border-radius: var(--radius);
+}
+
+/* ── Tarjeta ── */
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: calc(var(--radius) * 1.5);
+    box-shadow: var(--shadow-card);
+    padding: 36px 32px;
+}
+
+.login-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -.4px;
+    margin-bottom: 4px;
+}
+
+.login-subtitle {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin-bottom: 28px;
+}
+
+/* ── Alerta ── */
+.alert {
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+.alert-error {
+    background: var(--color-error-bg);
+    border: 1px solid #fca5a5;
+    color: var(--color-error);
+}
+
+/* ── Campos ── */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+.field label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.field input {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    color: var(--color-text);
+    background: var(--color-surface);
+    transition: border-color .15s, box-shadow .15s;
+    outline: none;
+}
+
+.field input::placeholder {
+    color: #94a3b8;
+}
+
+.field input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+
+.field input.input-error {
+    border-color: var(--color-error);
+}
+
+.field-error {
+    font-size: 12px;
+    color: var(--color-error);
+}
+
+/* ── Botón ── */
+.btn-primary {
+    width: 100%;
+    height: 40px;
+    margin-top: 8px;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.btn-primary:hover {
+    background: var(--color-primary-hover);
+}
+
+/* ── Pie ── */
+.login-footer {
+    font-size: 12px;
+    color: var(--color-text-muted);
+}

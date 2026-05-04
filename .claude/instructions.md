@@ -30,6 +30,7 @@ El sistema debe permitir:
 | 3   | **Registrar realidad**    | Permitir guardar aunque haya errores; marcar inconsistencias en lugar de bloquear |
 | 4   | **Historial inmutable**   | El pasado no se modifica; solo se agregan eventos                                 |
 | 5   | **Simplicidad**           | No optimizar rutas, no automatizar decisiones; solo registrar y mostrar           |
+| 6   | **Interfaz**              | Mantener un estilo sobrio, moderno y elegante: blanco, grices y azules            |
 
 ---
 

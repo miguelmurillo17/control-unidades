@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Iniciar sesión — Control de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="login-layout">
+
+    <div class="login-brand">
+        <span class="brand-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="3" width="15" height="13" rx="2"/>
+                <path d="M16 8h4l3 5v3h-7V8z"/>
+                <circle cx="5.5" cy="18.5" r="2.5"/>
+                <circle cx="18.5" cy="18.5" r="2.5"/>
+            </svg>
+        </span>
+        <span class="brand-name">Control de Unidades</span>
+    </div>
+
+    <div class="login-card">
+        <h1 class="login-title">Iniciar sesión</h1>
+        <p class="login-subtitle">Ingresa tus credenciales para continuar</p>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-error">
+            {% for error in form.non_field_errors %}
+                <span>{{ error }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="field">
+                <label for="{{ form.username.id_for_label }}">Usuario</label>
+                <input
+                    type="text"
+                    id="{{ form.username.id_for_label }}"
+                    name="{{ form.username.html_name }}"
+                    value="{{ form.username.value|default:'' }}"
+                    placeholder="Nombre de usuario"
+                    autocomplete="username"
+                    autofocus
+                    class="{% if form.username.errors %}input-error{% endif %}"
+                >
+                {% if form.username.errors %}
+                    <span class="field-error">{{ form.username.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label for="{{ form.password.id_for_label }}">Contraseña</label>
+                <input
+                    type="password"
+                    id="{{ form.password.id_for_label }}"
+                    name="{{ form.password.html_name }}"
+                    placeholder="••••••••"
+                    autocomplete="current-password"
+                    class="{% if form.password.errors %}input-error{% endif %}"
+                >
+                {% if form.password.errors %}
+                    <span class="field-error">{{ form.password.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn-primary">Entrar</button>
+        </form>
+    </div>
+
+    <p class="login-footer">Sistema interno — acceso restringido</p>
+
+</div>
+{% endblock %}

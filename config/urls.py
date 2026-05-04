@@ -15,8 +15,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
+from django.http import HttpResponse
 from django.urls import path
+
+
+def dashboard_placeholder(_request):
+    return HttpResponse("Dashboard — próximamente")
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', auth_views.LoginView.as_view(), name='login'),
+    path('salir/', auth_views.LogoutView.as_view(), name='logout'),
+    path('dashboard/', dashboard_placeholder, name='dashboard'),
 ]
