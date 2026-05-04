@@ -6,6 +6,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
 from .forms import UsuarioCreacionForm, UsuarioEdicionForm
 from .models import Usuario
+from logistica.models import Unidad, Sucursal
 
 
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -15,7 +16,11 @@ class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
 @login_required
 def dashboard(request):
-    return render(request, "dashboard.html")
+    context = {}
+    if request.user.rol == "ADMIN":
+        context["total_unidades_activas"] = Unidad.objects.filter(activo=True).count()
+        context["total_sucursales"] = Sucursal.objects.filter(activo=True).count()
+    return render(request, "dashboard.html", context)
 
 
 class UsuarioListView(AdminRequiredMixin, ListView):
