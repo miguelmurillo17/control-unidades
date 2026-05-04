@@ -12,25 +12,18 @@ Django project : config
 ```
 config/          ← Configuración del proyecto Django
 core/
-    usuarios/      ← Usuarios del sistema y roles
-logistica/
-    sucursales/    ← Catálogo de sucursales
-    unidades/      ← Tractores y remolques
-    movimientos/   ← Evento central del sistema
-    inspecciones/  ← Checklists y evidencia operativa
+    usuarios/    ← Usuarios del sistema y roles (AUTH_USER_MODEL)
+logistica/       ← Toda la lógica de negocio logística
 ```
 
 ---
 
 ## Responsabilidad por App
 
-| App                      | Responsabilidad                               |
-| ------------------------ | --------------------------------------------- |
-| `core.usuarios`          | Usuarios del sistema, roles básicos           |
-| `logistica.sucursales`   | Catálogo de sucursales y ubicación operativa  |
-| `logistica.unidades`     | Registro de tractores y remolques             |
-| `logistica.movimientos`  | Registro de entradas, salidas y correcciones  |
-| `logistica.inspecciones` | Checklist de inspección y evidencia operativa |
+| App             | Responsabilidad                                                              |
+| --------------- | ---------------------------------------------------------------------------- |
+| `core.usuarios` | Usuarios del sistema, roles básicos                                          |
+| `logistica`     | Sucursales, unidades, movimientos e inspecciones — dominio logístico unificado |
 
 ---
 
@@ -63,10 +56,13 @@ class Usuario(AbstractUser):
 
 ---
 
-### `logistica.sucursales` — `models.py`
+### `logistica` — `models.py`
+
+Todos los modelos del dominio logístico viven en `logistica/models.py`.
 
 ```python
 from django.db import models
+from core.usuarios.models import Usuario
 
 class Sucursal(models.Model):
     nombre     = models.CharField(max_length=100)
@@ -74,15 +70,6 @@ class Sucursal(models.Model):
     tipo       = models.CharField(max_length=50, blank=True)
     activo     = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-```
-
----
-
-### `logistica.unidades` — `models.py`
-
-```python
-from django.db import models
-from logistica.sucursales.models import Sucursal
 
 class Unidad(models.Model):
     TIPO_CHOICES = [
@@ -96,55 +83,35 @@ class Unidad(models.Model):
     )
     activo     = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-```
 
-> **Nota:** `estado_actual` no se guarda en este modelo — se calcula dinámicamente desde `movimientos`.
-
----
-
-### `logistica.movimientos` — `models.py`
-
-```python
-from django.db import models
-from core.usuarios.models import Usuario
-from logistica.unidades.models import Unidad
-from logistica.sucursales.models import Sucursal
+# estado_actual no se guarda — se calcula dinámicamente desde Movimiento
 
 class Movimiento(models.Model):
     TIPO_CHOICES = [
-        ("ENTRADA",       "Entrada"),
-        ("SALIDA",        "Salida"),
-        ("TALLER_ENTRADA","Entrada a taller"),
-        ("TALLER_SALIDA", "Salida de taller"),
-        ("CORRECCION",    "Corrección"),
+        ("ENTRADA",        "Entrada"),
+        ("SALIDA",         "Salida"),
+        ("TALLER_ENTRADA", "Entrada a taller"),
+        ("TALLER_SALIDA",  "Salida de taller"),
+        ("CORRECCION",     "Corrección"),
     ]
-    unidad               = models.ForeignKey(Unidad,    on_delete=models.PROTECT)
-    tipo                 = models.CharField(max_length=30, choices=TIPO_CHOICES)
-    sucursal             = models.ForeignKey(Sucursal,  on_delete=models.PROTECT)
-    fecha_hora_evento    = models.DateTimeField()
-    fecha_hora_registro  = models.DateTimeField(auto_now_add=True)
-    usuario              = models.ForeignKey(Usuario,   on_delete=models.PROTECT)
-    observaciones        = models.TextField(blank=True)
-    inconsistente        = models.BooleanField(default=False)  # no bloquea; solo marca
-    cancelado            = models.BooleanField(default=False)
+    unidad                = models.ForeignKey(Unidad,   on_delete=models.PROTECT)
+    tipo                  = models.CharField(max_length=30, choices=TIPO_CHOICES)
+    sucursal              = models.ForeignKey(Sucursal, on_delete=models.PROTECT)
+    fecha_hora_evento     = models.DateTimeField()
+    fecha_hora_registro   = models.DateTimeField(auto_now_add=True)
+    usuario               = models.ForeignKey(Usuario,  on_delete=models.PROTECT)
+    observaciones         = models.TextField(blank=True)
+    inconsistente         = models.BooleanField(default=False)  # no bloquea; solo marca
+    cancelado             = models.BooleanField(default=False)
     referencia_movimiento = models.ForeignKey(           # apunta al movimiento original en CORRECCION
         "self", null=True, blank=True, on_delete=models.SET_NULL
     )
-```
-
----
-
-### `logistica.inspecciones` — `models.py`
-
-```python
-from django.db import models
-from logistica.movimientos.models import Movimiento
 
 class Inspeccion(models.Model):
-    movimiento       = models.OneToOneField(Movimiento, on_delete=models.CASCADE)
+    movimiento        = models.OneToOneField(Movimiento, on_delete=models.CASCADE)
     resultado_general = models.CharField(max_length=50, blank=True)
-    observaciones    = models.TextField(blank=True)
-    created_at       = models.DateTimeField(auto_now_add=True)
+    observaciones     = models.TextField(blank=True)
+    created_at        = models.DateTimeField(auto_now_add=True)
 
 class DetalleInspeccion(models.Model):
     inspeccion     = models.ForeignKey(Inspeccion, on_delete=models.CASCADE)
@@ -157,9 +124,9 @@ class DetalleInspeccion(models.Model):
 
 ## Services
 
-Cada app debe incluir un archivo `services.py`. La lógica de negocio **no** va en views ni en modelos.
+La lógica de negocio **no** va en views ni en modelos — va en `logistica/services.py`.
 
-### `logistica.movimientos.services`
+### `logistica.services`
 
 ```python
 def registrar_movimiento(data: dict) -> Movimiento:
