@@ -16,13 +16,21 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import include, path
+from django.urls import include, path, reverse_lazy
 
 from core.usuarios.views import dashboard
 
+
+class LoginView(auth_views.LoginView):
+    redirect_authenticated_user = True
+
+    def get_success_url(self):
+        return reverse_lazy("dashboard")
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', auth_views.LoginView.as_view(redirect_authenticated_user=True), name='login'),
+    path('', LoginView.as_view(), name='login'),
     path('salir/', auth_views.LogoutView.as_view(), name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
     path('', include('logistica.urls')),
