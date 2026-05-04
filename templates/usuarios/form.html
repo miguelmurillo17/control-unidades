@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — Sistema de Control y Trazabilidad de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="usuarios" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div class="page-header-row">
+                <div>
+                    <h1>{{ titulo }}</h1>
+                </div>
+                <a href="{% url 'usuarios:list' %}" class="btn-secondary-sm">Cancelar</a>
+            </div>
+        </header>
+
+        <section class="page-body">
+            <div class="form-card">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="{{ form.first_name.id_for_label }}">Nombre</label>
+                            <input type="text"
+                                   id="{{ form.first_name.id_for_label }}"
+                                   name="{{ form.first_name.html_name }}"
+                                   value="{{ form.first_name.value|default:'' }}"
+                                   class="{% if form.first_name.errors %}input-error{% endif %}">
+                            {% if form.first_name.errors %}<span class="field-error">{{ form.first_name.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.last_name.id_for_label }}">Apellido</label>
+                            <input type="text"
+                                   id="{{ form.last_name.id_for_label }}"
+                                   name="{{ form.last_name.html_name }}"
+                                   value="{{ form.last_name.value|default:'' }}"
+                                   class="{% if form.last_name.errors %}input-error{% endif %}">
+                            {% if form.last_name.errors %}<span class="field-error">{{ form.last_name.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.username.id_for_label }}">Usuario</label>
+                            <input type="text"
+                                   id="{{ form.username.id_for_label }}"
+                                   name="{{ form.username.html_name }}"
+                                   value="{{ form.username.value|default:'' }}"
+                                   autocomplete="off"
+                                   class="{% if form.username.errors %}input-error{% endif %}">
+                            {% if form.username.errors %}<span class="field-error">{{ form.username.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.rol.id_for_label }}">Rol</label>
+                            <select id="{{ form.rol.id_for_label }}"
+                                    name="{{ form.rol.html_name }}"
+                                    class="{% if form.rol.errors %}input-error{% endif %}">
+                                <option value="">— Selecciona —</option>
+                                {% for val, label in form.rol.field.choices %}
+                                {% if val %}
+                                <option value="{{ val }}" {% if form.rol.value == val %}selected{% endif %}>{{ label }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                            {% if form.rol.errors %}<span class="field-error">{{ form.rol.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        {% if form.password1 %}
+                        <div class="field">
+                            <label for="{{ form.password1.id_for_label }}">Contraseña</label>
+                            <input type="password"
+                                   id="{{ form.password1.id_for_label }}"
+                                   name="{{ form.password1.html_name }}"
+                                   autocomplete="new-password"
+                                   class="{% if form.password1.errors %}input-error{% endif %}">
+                            {% if form.password1.errors %}<span class="field-error">{{ form.password1.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.password2.id_for_label }}">Confirmar contraseña</label>
+                            <input type="password"
+                                   id="{{ form.password2.id_for_label }}"
+                                   name="{{ form.password2.html_name }}"
+                                   autocomplete="new-password"
+                                   class="{% if form.password2.errors %}input-error{% endif %}">
+                            {% if form.password2.errors %}<span class="field-error">{{ form.password2.errors.0 }}</span>{% endif %}
+                        </div>
+                        {% endif %}
+
+                        <div class="field field-checkbox">
+                            <label class="checkbox-label">
+                                <input type="checkbox"
+                                       id="{{ form.is_active.id_for_label }}"
+                                       name="{{ form.is_active.html_name }}"
+                                       {% if form.is_active.value %}checked{% endif %}>
+                                Usuario activo
+                            </label>
+                        </div>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-error" style="margin-top:16px">
+                        {% for error in form.non_field_errors %}<span>{{ error }}</span>{% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">{{ accion }}</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Usuarios — Sistema de Control y Trazabilidad de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="usuarios" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div class="page-header-row">
+                <div>
+                    <h1>Usuarios</h1>
+                    <p>Cuentas de acceso al sistema</p>
+                </div>
+                <a href="{% url 'usuarios:create' %}" class="btn-primary-sm">+ Nuevo usuario</a>
+            </div>
+        </header>
+
+        <section class="page-body">
+            {% if usuarios %}
+            <div class="table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in usuarios %}
+                        <tr>
+                            <td class="cell-primary">{{ u.get_full_name }}</td>
+                            <td>{{ u.username }}</td>
+                            <td>{{ u.get_rol_display }}</td>
+                            <td>
+                                {% if u.is_active %}
+                                <span class="badge badge-green">Activo</span>
+                                {% else %}
+                                <span class="badge badge-gray">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td class="cell-actions">
+                                <a href="{% url 'usuarios:update' u.pk %}" class="action-link">Editar</a>
+                                {% if u != request.user %}
+                                <a href="{% url 'usuarios:delete' u.pk %}" class="action-link action-link-danger">Eliminar</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No hay usuarios registrados.</p>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}
