@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sucursales — Control de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="sucursales" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div class="page-header-row">
+                <div>
+                    <h1>Sucursales</h1>
+                    <p>Catálogo de sucursales y ubicaciones operativas</p>
+                </div>
+                <a href="{% url 'sucursales:create' %}" class="btn-primary-sm">+ Nueva sucursal</a>
+            </div>
+        </header>
+
+        <section class="page-body">
+            {% if sucursales %}
+            <div class="table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Ciudad</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sucursales %}
+                        <tr>
+                            <td class="cell-primary">{{ s.nombre }}</td>
+                            <td>{{ s.ciudad }}</td>
+                            <td>{{ s.tipo|default:"—" }}</td>
+                            <td>
+                                {% if s.activo %}
+                                <span class="badge badge-green">Activa</span>
+                                {% else %}
+                                <span class="badge badge-gray">Inactiva</span>
+                                {% endif %}
+                            </td>
+                            <td class="cell-actions">
+                                <a href="{% url 'sucursales:update' s.pk %}" class="action-link">Editar</a>
+                                <a href="{% url 'sucursales:delete' s.pk %}" class="action-link action-link-danger">Eliminar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No hay sucursales registradas.</p>
+                <a href="{% url 'sucursales:create' %}" class="btn-primary-sm" style="margin-top:12px">Crear la primera</a>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}

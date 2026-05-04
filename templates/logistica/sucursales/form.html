@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — Control de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="sucursales" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div class="page-header-row">
+                <div>
+                    <h1>{{ titulo }}</h1>
+                </div>
+                <a href="{% url 'sucursales:list' %}" class="btn-secondary-sm">Cancelar</a>
+            </div>
+        </header>
+
+        <section class="page-body">
+            <div class="form-card">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="{{ form.nombre.id_for_label }}">Nombre</label>
+                            <input type="text" id="{{ form.nombre.id_for_label }}"
+                                   name="{{ form.nombre.html_name }}"
+                                   value="{{ form.nombre.value|default:'' }}"
+                                   class="{% if form.nombre.errors %}input-error{% endif %}">
+                            {% if form.nombre.errors %}<span class="field-error">{{ form.nombre.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.ciudad.id_for_label }}">Ciudad</label>
+                            <input type="text" id="{{ form.ciudad.id_for_label }}"
+                                   name="{{ form.ciudad.html_name }}"
+                                   value="{{ form.ciudad.value|default:'' }}"
+                                   class="{% if form.ciudad.errors %}input-error{% endif %}">
+                            {% if form.ciudad.errors %}<span class="field-error">{{ form.ciudad.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.tipo.id_for_label }}">Tipo <span class="field-optional">(opcional)</span></label>
+                            <input type="text" id="{{ form.tipo.id_for_label }}"
+                                   name="{{ form.tipo.html_name }}"
+                                   value="{{ form.tipo.value|default:'' }}"
+                                   placeholder="Ej. Central, Foránea, Taller…">
+                        </div>
+
+                        <div class="field field-checkbox">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="{{ form.activo.id_for_label }}"
+                                       name="{{ form.activo.html_name }}"
+                                       {% if form.activo.value %}checked{% endif %}>
+                                Sucursal activa
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">{{ accion }}</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

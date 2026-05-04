@@ -116,12 +116,15 @@
     color: var(--color-text-muted);
     flex-shrink: 0;
     transition: background .12s, color .12s;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
 }
 
 .btn-logout:hover {
     background: #fef2f2;
     color: var(--color-error);
-    text-decoration: none;
 }
 
 /* ── Main ── */

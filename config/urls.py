@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import include, path
 
 from core.usuarios.views import dashboard
 
@@ -25,4 +25,5 @@ urlpatterns = [
     path('', auth_views.LoginView.as_view(redirect_authenticated_user=True), name='login'),
     path('salir/', auth_views.LogoutView.as_view(), name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
+    path('sucursales/', include('logistica.urls')),
 ]

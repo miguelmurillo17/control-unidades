@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Eliminar sucursal — Control de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="sucursales" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <h1>Eliminar sucursal</h1>
+        </header>
+
+        <section class="page-body">
+            <div class="form-card">
+                <p class="confirm-text">
+                    ¿Estás seguro de que deseas eliminar la sucursal
+                    <strong>{{ object.nombre }}</strong> ({{ object.ciudad }})?
+                    Esta acción no se puede deshacer.
+                </p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-actions">
+                        <a href="{% url 'sucursales:list' %}" class="btn-secondary-sm">Cancelar</a>
+                        <button type="submit" class="btn-danger">Sí, eliminar</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}
