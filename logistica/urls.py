@@ -9,6 +9,7 @@ from .views import (
     UnidadCreateView,
     UnidadUpdateView,
     UnidadDeleteView,
+    registrar_movimiento,
 )
 
 sucursales_urls = ([
@@ -28,4 +29,5 @@ unidades_urls = ([
 urlpatterns = [
     path("sucursales/", include(sucursales_urls)),
     path("unidades/", include(unidades_urls)),
+    path("movimientos/registrar/", registrar_movimiento, name="registrar_movimiento"),
 ]

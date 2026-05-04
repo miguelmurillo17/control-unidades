@@ -38,7 +38,7 @@ class Movimiento(models.Model):
         ("TALLER_SALIDA",  "Salida de taller"),
         ("CORRECCION",     "Corrección"),
     ]
-    unidad                = models.ForeignKey(Unidad,    on_delete=models.PROTECT)
+    unidades              = models.ManyToManyField(Unidad, through="UnidadMovimiento")
     tipo                  = models.CharField(max_length=30, choices=TIPO_CHOICES)
     sucursal              = models.ForeignKey(Sucursal,  on_delete=models.PROTECT)
     fecha_hora_evento     = models.DateTimeField()
@@ -50,6 +50,14 @@ class Movimiento(models.Model):
     referencia_movimiento = models.ForeignKey(
         "self", null=True, blank=True, on_delete=models.SET_NULL
     )
+
+
+class UnidadMovimiento(models.Model):
+    movimiento = models.ForeignKey(Movimiento, on_delete=models.CASCADE, related_name="unidad_movimientos")
+    unidad     = models.ForeignKey(Unidad,     on_delete=models.PROTECT,  related_name="unidad_movimientos")
+
+    class Meta:
+        unique_together = [("movimiento", "unidad")]
 
 
 class Inspeccion(models.Model):

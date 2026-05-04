@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Registrar movimiento — Sistema de Control y Trazabilidad de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+<link rel="stylesheet" href="{% static 'css/movimiento.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="registrar" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <h1>Registrar movimiento</h1>
+            <p>Selecciona entre 1 y 3 unidades para este movimiento</p>
+        </header>
+
+        <section class="page-body">
+
+            {% if movimiento_guardado %}
+            <div class="alert-success">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>
+                    Movimiento registrado —
+                    <strong>{% for u in movimiento_guardado.unidades.all %}{{ u.numero_economico }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong>,
+                    {{ movimiento_guardado.get_tipo_display }}, {{ movimiento_guardado.sucursal.nombre }}
+                    {% if movimiento_guardado.inconsistente %}
+                    <span class="badge-inconsistente">⚠ marcado como inconsistente</span>
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+
+            {% if advertencias %}
+            <div class="alert-warning">
+                <div class="alert-warning-body">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <div>
+                        <strong>Posible inconsistencia</strong>
+                        {% for msg in advertencias %}<p>{{ msg }}</p>{% endfor %}
+                        <p class="advertencia-sub">Puedes continuar y corregir posteriormente.</p>
+                    </div>
+                </div>
+                <form method="post" class="advertencia-actions">
+                    {% csrf_token %}
+                    {% for u in form.unidades.value %}
+                    <input type="hidden" name="unidades" value="{{ u }}">
+                    {% endfor %}
+                    <input type="hidden" name="tipo" value="{{ form.tipo.value }}">
+                    <input type="hidden" name="sucursal" value="{{ form.sucursal.value }}">
+                    <input type="hidden" name="fecha_hora_evento" value="{{ form.fecha_hora_evento.value }}">
+                    <input type="hidden" name="observaciones" value="{{ form.observaciones.value|default:'' }}">
+                    <input type="hidden" name="confirmar" value="1">
+                    <a href="{% url 'registrar_movimiento' %}" class="btn-secondary-sm">Cancelar</a>
+                    <button type="submit" class="btn-warning">Continuar de todas formas</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="form-card form-card-wide">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="form-grid">
+
+                        <div class="field field-wide">
+                            <label>{{ form.unidades.label }} <span class="field-optional">(1 a 3)</span></label>
+                            <div class="unidades-grid">
+                                <div class="unidades-grupo">
+                                    <span class="unidades-grupo-label">Tractores</span>
+                                    {% for unidad in form.unidades.field.queryset %}
+                                    {% if unidad.tipo == "TRACTOR" %}
+                                    <label class="checkbox-unidad">
+                                        <input type="checkbox" name="unidades" value="{{ unidad.pk }}"
+                                               {% if unidad.pk|stringformat:"s" in form.unidades.value|default:"" %}checked{% endif %}>
+                                        <span class="unidad-numero">{{ unidad.numero_economico }}</span>
+                                        {% if unidad.sucursal_actual %}
+                                        <span class="unidad-ubicacion">{{ unidad.sucursal_actual.nombre }}</span>
+                                        {% endif %}
+                                    </label>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class="unidades-grupo">
+                                    <span class="unidades-grupo-label">Remolques</span>
+                                    {% for unidad in form.unidades.field.queryset %}
+                                    {% if unidad.tipo == "REMOLQUE" %}
+                                    <label class="checkbox-unidad">
+                                        <input type="checkbox" name="unidades" value="{{ unidad.pk }}"
+                                               {% if unidad.pk|stringformat:"s" in form.unidades.value|default:"" %}checked{% endif %}>
+                                        <span class="unidad-numero">{{ unidad.numero_economico }}</span>
+                                        {% if unidad.sucursal_actual %}
+                                        <span class="unidad-ubicacion">{{ unidad.sucursal_actual.nombre }}</span>
+                                        {% endif %}
+                                    </label>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% if form.unidades.errors %}
+                            <span class="field-error">{{ form.unidades.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.tipo.id_for_label }}">{{ form.tipo.label }}</label>
+                            <select id="{{ form.tipo.id_for_label }}" name="{{ form.tipo.html_name }}"
+                                    class="{% if form.tipo.errors %}input-error{% endif %}">
+                                {% for val, label in form.tipo.field.choices %}
+                                <option value="{{ val }}" {% if form.tipo.value == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if form.tipo.errors %}<span class="field-error">{{ form.tipo.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.sucursal.id_for_label }}">{{ form.sucursal.label }}</label>
+                            <select id="{{ form.sucursal.id_for_label }}" name="{{ form.sucursal.html_name }}"
+                                    class="{% if form.sucursal.errors %}input-error{% endif %}">
+                                <option value="">— Selecciona —</option>
+                                {% for sucursal in form.sucursal.field.queryset %}
+                                <option value="{{ sucursal.pk }}"
+                                    {% if form.sucursal.value|stringformat:"s" == sucursal.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ sucursal.nombre }} — {{ sucursal.ciudad }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.sucursal.errors %}<span class="field-error">{{ form.sucursal.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.fecha_hora_evento.id_for_label }}">{{ form.fecha_hora_evento.label }}</label>
+                            <input type="datetime-local"
+                                   id="{{ form.fecha_hora_evento.id_for_label }}"
+                                   name="{{ form.fecha_hora_evento.html_name }}"
+                                   value="{{ form.fecha_hora_evento.value|default:form.fields.fecha_hora_evento.initial }}"
+                                   class="{% if form.fecha_hora_evento.errors %}input-error{% endif %}">
+                            {% if form.fecha_hora_evento.errors %}<span class="field-error">{{ form.fecha_hora_evento.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field field-wide">
+                            <label for="{{ form.observaciones.id_for_label }}">{{ form.observaciones.label }} <span class="field-optional">(opcional)</span></label>
+                            <textarea id="{{ form.observaciones.id_for_label }}"
+                                      name="{{ form.observaciones.html_name }}"
+                                      rows="3">{{ form.observaciones.value|default:'' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Registrar</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
+        </section>
+    </main>
+</div>
+{% endblock %}

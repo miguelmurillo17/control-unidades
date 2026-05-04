@@ -1,8 +1,12 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
+from .forms import MovimientoForm
 from .models import Sucursal, Unidad
+from .services import detectar_inconsistencias, crear_movimiento
 
 
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -86,3 +90,36 @@ class UnidadDeleteView(AdminRequiredMixin, DeleteView):
     model = Unidad
     template_name = "logistica/unidades/confirm_delete.html"
     success_url = reverse_lazy("unidades:list")
+
+
+@login_required
+def registrar_movimiento(request):
+    if request.user.rol != "CASETA":
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+
+    movimiento_guardado = None
+
+    if request.method == "POST":
+        form = MovimientoForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            confirmar = request.POST.get("confirmar") == "1"
+
+            advertencias = detectar_inconsistencias(data["unidades"], data["tipo"])
+
+            if advertencias and not confirmar:
+                return render(request, "logistica/movimientos/form.html", {
+                    "form": form,
+                    "advertencias": advertencias,
+                })
+
+            movimiento_guardado = crear_movimiento(data, request.user)
+            form = MovimientoForm()  # Limpiar formulario para el siguiente registro
+    else:
+        form = MovimientoForm()
+
+    return render(request, "logistica/movimientos/form.html", {
+        "form": form,
+        "movimiento_guardado": movimiento_guardado,
+    })

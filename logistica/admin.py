@@ -20,16 +20,20 @@ class UnidadAdmin(admin.ModelAdmin):
 @admin.register(Movimiento)
 class MovimientoAdmin(admin.ModelAdmin):
     list_display = (
-        "unidad", "tipo", "sucursal", "fecha_hora_evento",
+        "get_unidades", "tipo", "sucursal", "fecha_hora_evento",
         "usuario", "inconsistente", "cancelado",
     )
-    list_filter = ("tipo", "inconsistente", "cancelado", "sucursal")
-    search_fields = ("unidad__numero_economico", "observaciones")
+    list_filter  = ("tipo", "inconsistente", "cancelado", "sucursal")
+    search_fields = ("unidades__numero_economico", "observaciones")
     readonly_fields = (
-        "unidad", "tipo", "sucursal", "fecha_hora_evento",
+        "unidades", "tipo", "sucursal", "fecha_hora_evento",
         "fecha_hora_registro", "usuario", "observaciones",
         "inconsistente", "referencia_movimiento",
     )
+
+    def get_unidades(self, obj):
+        return ", ".join(u.numero_economico for u in obj.unidades.all())
+    get_unidades.short_description = "Unidades"
 
     def has_delete_permission(self, _request, _obj=None):
         return False
