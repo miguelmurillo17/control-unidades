@@ -20,6 +20,7 @@ def dashboard(request):
     if request.user.rol == "ADMIN":
         context["total_unidades_activas"] = Unidad.objects.filter(activo=True).count()
         context["total_sucursales"] = Sucursal.objects.filter(activo=True).count()
+        context["total_usuarios_activos"] = Usuario.objects.filter(is_active=True).count()
     return render(request, "dashboard.html", context)
 
 
