@@ -4,9 +4,11 @@ from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
+from django.utils import timezone
+
 from .forms import UsuarioCreacionForm, UsuarioEdicionForm
 from .models import Usuario
-from logistica.models import Unidad, Sucursal
+from logistica.models import Movimiento, Unidad, Sucursal
 
 
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -18,9 +20,13 @@ class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 def dashboard(request):
     context = {}
     if request.user.rol == "ADMIN":
+        hoy = timezone.localdate()
         context["total_unidades_activas"] = Unidad.objects.filter(activo=True).count()
         context["total_sucursales"] = Sucursal.objects.filter(activo=True).count()
         context["total_usuarios_activos"] = Usuario.objects.filter(is_active=True).count()
+        context["movimientos_hoy"] = Movimiento.objects.filter(
+            fecha_hora_registro__date=hoy, cancelado=False
+        ).count()
     return render(request, "dashboard.html", context)
 
 

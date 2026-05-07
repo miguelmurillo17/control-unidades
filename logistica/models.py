@@ -54,7 +54,7 @@ class Movimiento(models.Model):
 
 class UnidadMovimiento(models.Model):
     movimiento = models.ForeignKey(Movimiento, on_delete=models.CASCADE, related_name="unidad_movimientos")
-    unidad     = models.ForeignKey(Unidad,     on_delete=models.PROTECT,  related_name="unidad_movimientos")
+    unidad     = models.ForeignKey(Unidad,     on_delete=models.PROTECT,  related_name="movimientos")
 
     class Meta:
         unique_together = [("movimiento", "unidad")]

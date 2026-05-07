@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
 from .forms import MovimientoForm
-from .models import Sucursal, Unidad
+from .models import Movimiento, Sucursal, Unidad
 from .services import detectar_inconsistencias, crear_movimiento
 
 
@@ -90,6 +90,23 @@ class UnidadDeleteView(AdminRequiredMixin, DeleteView):
     model = Unidad
     template_name = "logistica/unidades/confirm_delete.html"
     success_url = reverse_lazy("unidades:list")
+
+
+@login_required
+def mis_registros(request):
+    if request.user.rol != "CASETA":
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+
+    movimientos = (
+        Movimiento.objects
+        .filter(usuario=request.user)
+        .prefetch_related("unidad_movimientos__unidad", "sucursal")
+        .order_by("-fecha_hora_evento")
+    )
+    return render(request, "logistica/movimientos/mis_registros.html", {
+        "movimientos": movimientos,
+    })
 
 
 @login_required

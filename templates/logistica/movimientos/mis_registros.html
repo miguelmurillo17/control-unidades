@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mis registros — Sistema de Control y Trazabilidad de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="mis_registros" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <h1>Mis registros</h1>
+            <p>Movimientos registrados por ti, del más reciente al más antiguo</p>
+        </header>
+
+        <section class="page-body">
+            {% if movimientos %}
+            <div class="table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha y hora</th>
+                            <th>Tipo</th>
+                            <th>Sucursal</th>
+                            <th>Tractor</th>
+                            <th>Remolque</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in movimientos %}
+                        <tr>
+                            <td class="cell-primary">{{ m.fecha_hora_evento|date:"d/m/Y H:i" }}</td>
+                            <td>{{ m.get_tipo_display }}</td>
+                            <td>{{ m.sucursal.nombre }}</td>
+                            <td>
+                                {% for um in m.unidad_movimientos.all %}
+                                    {% if um.unidad.tipo == "TRACTOR" %}{{ um.unidad.numero_economico }}{% endif %}
+                                {% endfor %}
+                                {% with tractores=m.unidad_movimientos.all|length %}{% endwith %}
+                            </td>
+                            <td>
+                                {% for um in m.unidad_movimientos.all %}
+                                    {% if um.unidad.tipo == "REMOLQUE" %}{{ um.unidad.numero_economico }}{% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% if m.cancelado %}
+                                <span class="badge badge-gray">Cancelado</span>
+                                {% elif m.inconsistente %}
+                                <span class="badge badge-yellow">Inconsistente</span>
+                                {% else %}
+                                <span class="badge badge-green">OK</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>Aún no has registrado ningún movimiento.</p>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}

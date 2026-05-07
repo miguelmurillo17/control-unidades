@@ -16,7 +16,7 @@
     <main class="main-content">
         <header class="page-header">
             <h1>Registrar movimiento</h1>
-            <p>Selecciona entre 1 y 3 unidades para este movimiento</p>
+            <p>Selecciona el tractor y/o remolque para este movimiento</p>
         </header>
 
         <section class="page-body">
@@ -54,9 +54,8 @@
                 </div>
                 <form method="post" class="advertencia-actions">
                     {% csrf_token %}
-                    {% for u in form.unidades.value %}
-                    <input type="hidden" name="unidades" value="{{ u }}">
-                    {% endfor %}
+                    <input type="hidden" name="tractor" value="{{ form.tractor.value|default:'' }}">
+                    <input type="hidden" name="remolque" value="{{ form.remolque.value|default:'' }}">
                     <input type="hidden" name="tipo" value="{{ form.tipo.value }}">
                     <input type="hidden" name="sucursal" value="{{ form.sucursal.value }}">
                     <input type="hidden" name="fecha_hora_evento" value="{{ form.fecha_hora_evento.value }}">
@@ -72,45 +71,6 @@
                     {% csrf_token %}
 
                     <div class="form-grid">
-
-                        <div class="field field-wide">
-                            <label>{{ form.unidades.label }} <span class="field-optional">(1 a 3)</span></label>
-                            <div class="unidades-grid">
-                                <div class="unidades-grupo">
-                                    <span class="unidades-grupo-label">Tractores</span>
-                                    {% for unidad in form.unidades.field.queryset %}
-                                    {% if unidad.tipo == "TRACTOR" %}
-                                    <label class="checkbox-unidad">
-                                        <input type="checkbox" name="unidades" value="{{ unidad.pk }}"
-                                               {% if unidad.pk|stringformat:"s" in form.unidades.value|default:"" %}checked{% endif %}>
-                                        <span class="unidad-numero">{{ unidad.numero_economico }}</span>
-                                        {% if unidad.sucursal_actual %}
-                                        <span class="unidad-ubicacion">{{ unidad.sucursal_actual.nombre }}</span>
-                                        {% endif %}
-                                    </label>
-                                    {% endif %}
-                                    {% endfor %}
-                                </div>
-                                <div class="unidades-grupo">
-                                    <span class="unidades-grupo-label">Remolques</span>
-                                    {% for unidad in form.unidades.field.queryset %}
-                                    {% if unidad.tipo == "REMOLQUE" %}
-                                    <label class="checkbox-unidad">
-                                        <input type="checkbox" name="unidades" value="{{ unidad.pk }}"
-                                               {% if unidad.pk|stringformat:"s" in form.unidades.value|default:"" %}checked{% endif %}>
-                                        <span class="unidad-numero">{{ unidad.numero_economico }}</span>
-                                        {% if unidad.sucursal_actual %}
-                                        <span class="unidad-ubicacion">{{ unidad.sucursal_actual.nombre }}</span>
-                                        {% endif %}
-                                    </label>
-                                    {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            {% if form.unidades.errors %}
-                            <span class="field-error">{{ form.unidades.errors.0 }}</span>
-                            {% endif %}
-                        </div>
 
                         <div class="field">
                             <label for="{{ form.tipo.id_for_label }}">{{ form.tipo.label }}</label>
@@ -136,6 +96,36 @@
                                 {% endfor %}
                             </select>
                             {% if form.sucursal.errors %}<span class="field-error">{{ form.sucursal.errors.0 }}</span>{% endif %}
+                        </div>
+                        
+                        <div class="field">
+                            <label for="{{ form.tractor.id_for_label }}">{{ form.tractor.label }}</label>
+                            <select id="{{ form.tractor.id_for_label }}" name="{{ form.tractor.html_name }}"
+                                    class="{% if form.tractor.errors %}input-error{% endif %}">
+                                <option value="">— Ninguno —</option>
+                                {% for unidad in form.tractor.field.queryset %}
+                                <option value="{{ unidad.pk }}"
+                                    {% if form.tractor.value|stringformat:"s" == unidad.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ unidad.numero_economico }}{% if unidad.sucursal_actual %} — {{ unidad.sucursal_actual.nombre }}{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.tractor.errors %}<span class="field-error">{{ form.tractor.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.remolque.id_for_label }}">{{ form.remolque.label }}</label>
+                            <select id="{{ form.remolque.id_for_label }}" name="{{ form.remolque.html_name }}"
+                                    class="{% if form.remolque.errors %}input-error{% endif %}">
+                                <option value="">— Ninguno —</option>
+                                {% for unidad in form.remolque.field.queryset %}
+                                <option value="{{ unidad.pk }}"
+                                    {% if form.remolque.value|stringformat:"s" == unidad.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ unidad.numero_economico }}{% if unidad.sucursal_actual %} — {{ unidad.sucursal_actual.nombre }}{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.remolque.errors %}<span class="field-error">{{ form.remolque.errors.0 }}</span>{% endif %}
                         </div>
 
                         <div class="field">

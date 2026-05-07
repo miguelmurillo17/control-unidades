@@ -13,10 +13,17 @@ TIPO_CHOICES_CASETA = [
 
 
 class MovimientoForm(forms.Form):
-    unidades = forms.ModelMultipleChoiceField(
-        queryset=Unidad.objects.filter(activo=True).order_by("tipo", "numero_economico"),
-        widget=forms.CheckboxSelectMultiple,
-        label="Unidades",
+    tractor = forms.ModelChoiceField(
+        queryset=Unidad.objects.filter(activo=True, tipo="TRACTOR").order_by("numero_economico"),
+        required=False,
+        empty_label="— Ninguno —",
+        label="Tractor",
+    )
+    remolque = forms.ModelChoiceField(
+        queryset=Unidad.objects.filter(activo=True, tipo="REMOLQUE").order_by("numero_economico"),
+        required=False,
+        empty_label="— Ninguno —",
+        label="Remolque",
     )
     tipo = forms.ChoiceField(choices=TIPO_CHOICES_CASETA, label="Tipo de movimiento")
     sucursal = forms.ModelChoiceField(
@@ -41,10 +48,12 @@ class MovimientoForm(forms.Form):
             now = timezone.localtime(timezone.now())
             self.fields["fecha_hora_evento"].initial = now.strftime("%Y-%m-%dT%H:%M")
 
-    def clean_unidades(self):
-        unidades = self.cleaned_data.get("unidades")
+    def clean(self):
+        cleaned = super().clean()
+        tractor  = cleaned.get("tractor")
+        remolque = cleaned.get("remolque")
+        unidades = [u for u in [tractor, remolque] if u]
         if not unidades:
-            raise forms.ValidationError("Selecciona al menos una unidad.")
-        if len(unidades) > 3:
-            raise forms.ValidationError("No puedes registrar más de 3 unidades por movimiento.")
-        return unidades
+            raise forms.ValidationError("Selecciona al menos un tractor o remolque.")
+        cleaned["unidades"] = unidades
+        return cleaned
