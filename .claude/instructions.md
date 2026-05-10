@@ -155,13 +155,14 @@ Cada PDF generado debe:
 
 ## Roles
 
-| Rol       | Acceso                                |
-| --------- | ------------------------------------- |
-| `CASETA`  | Captura de movimientos e inspecciones |
-| `TRAFICO` | Consulta de historial y estado        |
-| `ADMIN`   | Configuración del sistema             |
+| Rol          | Acceso                                      |
+| ------------ | ------------------------------------------- |
+| `CASETA`     | Captura de movimientos e inspecciones       |
+| `CONTROL`    | Consulta de historial y estado de unidades  |
+| `PLANEACION` | Planificación y gestión de manifiestos      |
+| `ADMIN`      | Configuración del sistema                   |
 
-> No implementar permisos complejos más allá de estos tres roles.
+> No implementar permisos complejos más allá de estos cuatro roles.
 
 ---
 

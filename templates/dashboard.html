@@ -17,9 +17,12 @@
             {% if user.rol == "CASETA" %}
             <h1>Registro de movimientos</h1>
             <p>Registra entradas, salidas e inspecciones de unidades</p>
-            {% elif user.rol == "TRAFICO" %}
+            {% elif user.rol == "CONTROL" %}
             <h1>Estado de unidades</h1>
             <p>Consulta la ubicación y el historial de cada unidad</p>
+            {% elif user.rol == "PLANEACION" %}
+            <h1>Manifiestos</h1>
+            <p>Planificación y gestión de manifiestos de viaje</p>
             {% elif user.rol == "ADMIN" %}
             <h1>Resumen del sistema</h1>
             <p>Vista general de la operación</p>
@@ -34,9 +37,14 @@
                 <p>El formulario de registro de movimientos irá aquí.</p>
             </div>
 
-            {% elif user.rol == "TRAFICO" %}
+            {% elif user.rol == "CONTROL" %}
             <div class="empty-state">
                 <p>El panel de estado de unidades irá aquí.</p>
+            </div>
+
+            {% elif user.rol == "PLANEACION" %}
+            <div class="empty-state">
+                <p>El módulo de manifiestos irá aquí.</p>
             </div>
 
             {% elif user.rol == "ADMIN" %}
