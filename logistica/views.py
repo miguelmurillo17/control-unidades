@@ -4,8 +4,8 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
-from .forms import MovimientoForm
-from .models import Movimiento, Sucursal, Unidad
+from .forms import MovimientoForm, ManifiestoForm
+from .models import Manifiesto, Movimiento, Sucursal, Unidad, UnidadManifiesto
 from .services import detectar_inconsistencias, crear_movimiento
 
 
@@ -139,4 +139,53 @@ def registrar_movimiento(request):
     return render(request, "logistica/movimientos/form.html", {
         "form": form,
         "movimiento_guardado": movimiento_guardado,
+    })
+
+
+@login_required
+def manifiestos_list(request):
+    if request.user.rol != "PLANEACION":
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+
+    manifiestos = (
+        Manifiesto.objects
+        .exclude(estado="CANCELADO")
+        .select_related("sucursal_origen", "sucursal_destino", "usuario")
+        .prefetch_related("unidad_manifiestos__unidad")
+        .order_by("-created_at")
+    )
+    return render(request, "logistica/manifiestos/list.html", {"manifiestos": manifiestos})
+
+
+@login_required
+def registrar_manifiesto(request):
+    if request.user.rol != "PLANEACION":
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+
+    manifiesto_guardado = None
+
+    if request.method == "POST":
+        form = ManifiestoForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            manifiesto = Manifiesto.objects.create(
+                sucursal_origen=data["sucursal_origen"],
+                sucursal_destino=data["sucursal_destino"],
+                fecha_salida=data["fecha_salida"],
+                fecha_llegada_est=data.get("fecha_llegada_est"),
+                usuario=request.user,
+                observaciones=data.get("observaciones", ""),
+            )
+            for unidad in data["unidades"]:
+                UnidadManifiesto.objects.create(manifiesto=manifiesto, unidad=unidad)
+            manifiesto_guardado = manifiesto
+            form = ManifiestoForm()
+    else:
+        form = ManifiestoForm()
+
+    return render(request, "logistica/manifiestos/form.html", {
+        "form": form,
+        "manifiesto_guardado": manifiesto_guardado,
     })

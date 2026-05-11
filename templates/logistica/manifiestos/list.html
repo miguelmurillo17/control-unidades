@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Manifiestos — Sistema de Control y Trazabilidad de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="manifiestos" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div class="page-header-row">
+                <div>
+                    <h1>Manifiestos</h1>
+                    <p>Manifiestos activos, del más reciente al más antiguo</p>
+                </div>
+                <a href="{% url 'manifiestos:create' %}" class="btn-primary-sm">+ Nuevo manifiesto</a>
+            </div>
+        </header>
+
+        <section class="page-body">
+            {% if manifiestos %}
+            <div class="table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Origen</th>
+                            <th>Destino</th>
+                            <th>Tractor</th>
+                            <th>Remolque</th>
+                            <th>Fecha salida</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in manifiestos %}
+                        <tr>
+                            <td class="cell-primary">{{ m.pk }}</td>
+                            <td>{{ m.sucursal_origen.nombre }}</td>
+                            <td>{{ m.sucursal_destino.nombre }}</td>
+                            <td>
+                                {% for um in m.unidad_manifiestos.all %}
+                                    {% if um.unidad.tipo == "TRACTOR" %}{{ um.unidad.numero_economico }}{% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% for um in m.unidad_manifiestos.all %}
+                                    {% if um.unidad.tipo == "REMOLQUE" %}{{ um.unidad.numero_economico }}{% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>{{ m.fecha_salida|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if m.estado == "BORRADOR" %}
+                                <span class="badge badge-gray">Borrador</span>
+                                {% elif m.estado == "CONFIRMADO" %}
+                                <span class="badge badge-green">Confirmado</span>
+                                {% elif m.estado == "EN_TRANSITO" %}
+                                <span class="badge badge-yellow">En tránsito</span>
+                                {% elif m.estado == "COMPLETADO" %}
+                                <span class="badge badge-green">Completado</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No hay manifiestos activos.</p>
+                <a href="{% url 'manifiestos:create' %}" class="btn-primary-sm" style="margin-top:12px">Crear el primero</a>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}

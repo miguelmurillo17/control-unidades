@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Nuevo manifiesto — Sistema de Control y Trazabilidad de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="nuevo_manifiesto" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <h1>Nuevo manifiesto</h1>
+            <p>Registra el origen, destino y unidades del viaje</p>
+        </header>
+
+        <section class="page-body">
+
+            {% if manifiesto_guardado %}
+            <div class="alert-success">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>
+                    Manifiesto <strong>#{{ manifiesto_guardado.pk }}</strong> registrado —
+                    {{ manifiesto_guardado.sucursal_origen.nombre }} → {{ manifiesto_guardado.sucursal_destino.nombre }},
+                    salida {{ manifiesto_guardado.fecha_salida|date:"d/m/Y H:i" }}
+                </span>
+            </div>
+            {% endif %}
+
+            <div class="form-card form-card-wide">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="field-error" style="margin-bottom:16px">{{ form.non_field_errors.0 }}</div>
+                    {% endif %}
+
+                    <div class="form-grid">
+
+                        <div class="field">
+                            <label for="{{ form.sucursal_origen.id_for_label }}">{{ form.sucursal_origen.label }}</label>
+                            <select id="{{ form.sucursal_origen.id_for_label }}" name="{{ form.sucursal_origen.html_name }}"
+                                    class="{% if form.sucursal_origen.errors %}input-error{% endif %}">
+                                <option value="">— Selecciona —</option>
+                                {% for s in form.sucursal_origen.field.queryset %}
+                                <option value="{{ s.pk }}"
+                                    {% if form.sucursal_origen.value|stringformat:"s" == s.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ s.nombre }} — {{ s.ciudad }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.sucursal_origen.errors %}<span class="field-error">{{ form.sucursal_origen.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.sucursal_destino.id_for_label }}">{{ form.sucursal_destino.label }}</label>
+                            <select id="{{ form.sucursal_destino.id_for_label }}" name="{{ form.sucursal_destino.html_name }}"
+                                    class="{% if form.sucursal_destino.errors %}input-error{% endif %}">
+                                <option value="">— Selecciona —</option>
+                                {% for s in form.sucursal_destino.field.queryset %}
+                                <option value="{{ s.pk }}"
+                                    {% if form.sucursal_destino.value|stringformat:"s" == s.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ s.nombre }} — {{ s.ciudad }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.sucursal_destino.errors %}<span class="field-error">{{ form.sucursal_destino.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.tractor.id_for_label }}">{{ form.tractor.label }}</label>
+                            <select id="{{ form.tractor.id_for_label }}" name="{{ form.tractor.html_name }}"
+                                    class="{% if form.tractor.errors %}input-error{% endif %}">
+                                <option value="">— Ninguno —</option>
+                                {% for unidad in form.tractor.field.queryset %}
+                                <option value="{{ unidad.pk }}"
+                                    {% if form.tractor.value|stringformat:"s" == unidad.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ unidad.numero_economico }}{% if unidad.sucursal_actual %} — {{ unidad.sucursal_actual.nombre }}{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.tractor.errors %}<span class="field-error">{{ form.tractor.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.remolque.id_for_label }}">{{ form.remolque.label }}</label>
+                            <select id="{{ form.remolque.id_for_label }}" name="{{ form.remolque.html_name }}"
+                                    class="{% if form.remolque.errors %}input-error{% endif %}">
+                                <option value="">— Ninguno —</option>
+                                {% for unidad in form.remolque.field.queryset %}
+                                <option value="{{ unidad.pk }}"
+                                    {% if form.remolque.value|stringformat:"s" == unidad.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ unidad.numero_economico }}{% if unidad.sucursal_actual %} — {{ unidad.sucursal_actual.nombre }}{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.remolque.errors %}<span class="field-error">{{ form.remolque.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.fecha_salida.id_for_label }}">{{ form.fecha_salida.label }}</label>
+                            <input type="datetime-local"
+                                   id="{{ form.fecha_salida.id_for_label }}"
+                                   name="{{ form.fecha_salida.html_name }}"
+                                   value="{{ form.fecha_salida.value|default:form.fields.fecha_salida.initial }}"
+                                   class="{% if form.fecha_salida.errors %}input-error{% endif %}">
+                            {% if form.fecha_salida.errors %}<span class="field-error">{{ form.fecha_salida.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.fecha_llegada_est.id_for_label }}">{{ form.fecha_llegada_est.label }} <span class="field-optional">(opcional)</span></label>
+                            <input type="datetime-local"
+                                   id="{{ form.fecha_llegada_est.id_for_label }}"
+                                   name="{{ form.fecha_llegada_est.html_name }}"
+                                   value="{{ form.fecha_llegada_est.value|default:'' }}"
+                                   class="{% if form.fecha_llegada_est.errors %}input-error{% endif %}">
+                            {% if form.fecha_llegada_est.errors %}<span class="field-error">{{ form.fecha_llegada_est.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field field-wide">
+                            <label for="{{ form.observaciones.id_for_label }}">{{ form.observaciones.label }} <span class="field-optional">(opcional)</span></label>
+                            <textarea id="{{ form.observaciones.id_for_label }}"
+                                      name="{{ form.observaciones.html_name }}"
+                                      rows="3">{{ form.observaciones.value|default:'' }}</textarea>
+                        </div>
+
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{% url 'manifiestos:list' %}" class="btn-secondary-sm">Cancelar</a>
+                        <button type="submit" class="btn-primary">Registrar manifiesto</button>
+                    </div>
+                </form>
+            </div>
+
+        </section>
+    </main>
+</div>
+{% endblock %}

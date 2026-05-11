@@ -60,6 +60,40 @@ class UnidadMovimiento(models.Model):
         unique_together = [("movimiento", "unidad")]
 
 
+class Manifiesto(models.Model):
+    ESTADO_CHOICES = [
+        ("BORRADOR",    "Borrador"),
+        ("CONFIRMADO",  "Confirmado"),
+        ("EN_TRANSITO", "En tránsito"),
+        ("COMPLETADO",  "Completado"),
+        ("CANCELADO",   "Cancelado"),
+    ]
+    unidades          = models.ManyToManyField(Unidad, through="UnidadManifiesto")
+    sucursal_origen   = models.ForeignKey(
+        Sucursal, on_delete=models.PROTECT, related_name="manifiestos_origen"
+    )
+    sucursal_destino  = models.ForeignKey(
+        Sucursal, on_delete=models.PROTECT, related_name="manifiestos_destino"
+    )
+    estado            = models.CharField(max_length=20, choices=ESTADO_CHOICES, default="BORRADOR")
+    fecha_salida      = models.DateTimeField()
+    fecha_llegada_est = models.DateTimeField(null=True, blank=True)
+    usuario           = models.ForeignKey(Usuario, on_delete=models.PROTECT)
+    observaciones     = models.TextField(blank=True)
+    created_at        = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Manifiesto #{self.pk} — {self.sucursal_origen} → {self.sucursal_destino}'
+
+
+class UnidadManifiesto(models.Model):
+    manifiesto = models.ForeignKey(Manifiesto, on_delete=models.CASCADE, related_name="unidad_manifiestos")
+    unidad     = models.ForeignKey(Unidad,     on_delete=models.PROTECT,  related_name="manifiestos")
+
+    class Meta:
+        unique_together = [("manifiesto", "unidad")]
+
+
 class Inspeccion(models.Model):
     movimiento        = models.OneToOneField(Movimiento, on_delete=models.CASCADE)
     resultado_general = models.CharField(max_length=50, blank=True)

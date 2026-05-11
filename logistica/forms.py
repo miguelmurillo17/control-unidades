@@ -1,7 +1,7 @@
 from django import forms
 from django.utils import timezone
 
-from .models import Unidad, Sucursal
+from .models import Unidad, Sucursal, Manifiesto
 
 TIPO_CHOICES_CASETA = [
     ("", "— Selecciona —"),
@@ -55,5 +55,66 @@ class MovimientoForm(forms.Form):
         unidades = [u for u in [tractor, remolque] if u]
         if not unidades:
             raise forms.ValidationError("Selecciona al menos un tractor o remolque.")
+        cleaned["unidades"] = unidades
+        return cleaned
+
+
+class ManifiestoForm(forms.Form):
+    tractor = forms.ModelChoiceField(
+        queryset=Unidad.objects.filter(activo=True, tipo="TRACTOR").order_by("numero_economico"),
+        required=False,
+        empty_label="— Ninguno —",
+        label="Tractor",
+    )
+    remolque = forms.ModelChoiceField(
+        queryset=Unidad.objects.filter(activo=True, tipo="REMOLQUE").order_by("numero_economico"),
+        required=False,
+        empty_label="— Ninguno —",
+        label="Remolque",
+    )
+    sucursal_origen = forms.ModelChoiceField(
+        queryset=Sucursal.objects.filter(activo=True).order_by("nombre"),
+        empty_label="— Selecciona —",
+        label="Sucursal de origen",
+    )
+    sucursal_destino = forms.ModelChoiceField(
+        queryset=Sucursal.objects.filter(activo=True).order_by("nombre"),
+        empty_label="— Selecciona —",
+        label="Sucursal de destino",
+    )
+    fecha_salida = forms.DateTimeField(
+        label="Fecha y hora de salida",
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
+        input_formats=["%Y-%m-%dT%H:%M"],
+    )
+    fecha_llegada_est = forms.DateTimeField(
+        label="Llegada estimada",
+        required=False,
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
+        input_formats=["%Y-%m-%dT%H:%M"],
+    )
+    observaciones = forms.CharField(
+        label="Observaciones",
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 3}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.data:
+            now = timezone.localtime(timezone.now())
+            self.fields["fecha_salida"].initial = now.strftime("%Y-%m-%dT%H:%M")
+
+    def clean(self):
+        cleaned = super().clean()
+        tractor  = cleaned.get("tractor")
+        remolque = cleaned.get("remolque")
+        unidades = [u for u in [tractor, remolque] if u]
+        if not unidades:
+            raise forms.ValidationError("Selecciona al menos un tractor o remolque.")
+        origen  = cleaned.get("sucursal_origen")
+        destino = cleaned.get("sucursal_destino")
+        if origen and destino and origen == destino:
+            raise forms.ValidationError("La sucursal de origen y destino no pueden ser la misma.")
         cleaned["unidades"] = unidades
         return cleaned
