@@ -7,9 +7,9 @@
 
 .table-card {
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
     border-radius: calc(var(--radius) * 1.5);
-    overflow: hidden;
+    overflow-x: auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
 }
 
 .data-table {
@@ -35,7 +35,7 @@
 
 .data-table td {
     padding: 12px 16px;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid #f1f5f9;
     color: var(--color-text);
 }
 
@@ -45,10 +45,11 @@
 
 .data-table tbody tr:hover td {
     background: #f8fafc;
+    cursor: default;
 }
 
 .cell-primary {
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .cell-actions {
@@ -139,4 +140,17 @@
 .btn-secondary-sm:hover {
     background: var(--color-bg);
     text-decoration: none;
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+    .page-header-row {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 10px 12px;
+    }
 }
