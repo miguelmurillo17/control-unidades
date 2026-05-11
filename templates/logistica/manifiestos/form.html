@@ -6,6 +6,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'css/form.css' %}">
+<link rel="stylesheet" href="{% static 'css/movimiento.css' %}">
 {% endblock %}
 
 {% block body %}
@@ -35,7 +36,7 @@
             {% endif %}
 
             <div class="form-card form-card-wide">
-                <form method="post" novalidate>
+                <form method="post" novalidate id="manifiestoForm">
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}
@@ -135,7 +136,7 @@
 
                     <div class="form-actions">
                         <a href="{% url 'manifiestos:list' %}" class="btn-secondary-sm">Cancelar</a>
-                        <button type="submit" class="btn-primary">Registrar manifiesto</button>
+                        <button type="button" class="btn-primary" id="btnRegistrar" onclick="abrirConfirmacion()" disabled>Registrar manifiesto</button>
                     </div>
                 </form>
             </div>
@@ -143,4 +144,125 @@
         </section>
     </main>
 </div>
+
+<!-- Modal de confirmación -->
+<div class="modal-overlay" id="modalConfirmacion" onclick="cerrarSiEsFondo(event)">
+    <div class="modal-card">
+        <div class="modal-header">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <h3>Confirmar manifiesto</h3>
+        </div>
+        <div class="modal-body">
+            <div class="modal-ruta">
+                <span id="modalOrigen" class="modal-sucursal"></span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+                <span id="modalDestino" class="modal-sucursal"></span>
+            </div>
+            <dl class="modal-detalle">
+                <div class="modal-detalle-fila">
+                    <dt>Tractor</dt>
+                    <dd id="modalTractor"></dd>
+                </div>
+                <div class="modal-detalle-fila">
+                    <dt>Remolque</dt>
+                    <dd id="modalRemolque"></dd>
+                </div>
+                <div class="modal-detalle-fila">
+                    <dt>Salida</dt>
+                    <dd id="modalSalida"></dd>
+                </div>
+                <div class="modal-detalle-fila" id="filaLlegada">
+                    <dt>Llegada est.</dt>
+                    <dd id="modalLlegada"></dd>
+                </div>
+                <div class="modal-detalle-fila" id="filaObs">
+                    <dt>Observaciones</dt>
+                    <dd id="modalObs"></dd>
+                </div>
+            </dl>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary-sm" onclick="cerrarModal()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="confirmarEnvio()">Confirmar y registrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const form    = document.getElementById('manifiestoForm');
+    const btn     = document.getElementById('btnRegistrar');
+    const campos  = [
+        form.sucursal_origen,
+        form.sucursal_destino,
+        form.fecha_salida,
+    ];
+    const unidades = [form.tractor, form.remolque];
+
+    function validar() {
+        const camposOk   = campos.every(c => c.value.trim() !== '');
+        const unidadOk   = unidades.some(u => u.value !== '');
+        btn.disabled = !(camposOk && unidadOk);
+    }
+
+    [...campos, ...unidades].forEach(c => c.addEventListener('change', validar));
+    form.fecha_salida.addEventListener('input', validar);
+    validar();
+})();
+
+function formatDatetime(val) {
+    if (!val) return '—';
+    const [date, time] = val.split('T');
+    if (!date) return '—';
+    const [y, m, d] = date.split('-');
+    return `${d}/${m}/${y} ${time || ''}`.trim();
+}
+
+function selectedText(selectEl) {
+    const opt = selectEl.options[selectEl.selectedIndex];
+    return opt && opt.value ? opt.text : '—';
+}
+
+function abrirConfirmacion() {
+    const form = document.getElementById('manifiestoForm');
+    document.getElementById('modalOrigen').textContent  = selectedText(form.sucursal_origen);
+    document.getElementById('modalDestino').textContent = selectedText(form.sucursal_destino);
+    document.getElementById('modalTractor').textContent  = selectedText(form.tractor);
+    document.getElementById('modalRemolque').textContent = selectedText(form.remolque);
+    document.getElementById('modalSalida').textContent   = formatDatetime(form.fecha_salida.value);
+
+    const llegada = form.fecha_llegada_est.value;
+    document.getElementById('filaLlegada').style.display = llegada ? '' : 'none';
+    document.getElementById('modalLlegada').textContent  = formatDatetime(llegada);
+
+    const obs = form.observaciones.value.trim();
+    document.getElementById('filaObs').style.display = obs ? '' : 'none';
+    document.getElementById('modalObs').textContent  = obs;
+
+    document.getElementById('modalConfirmacion').classList.add('activo');
+}
+
+function cerrarModal() {
+    document.getElementById('modalConfirmacion').classList.remove('activo');
+}
+
+function cerrarSiEsFondo(e) {
+    if (e.target === document.getElementById('modalConfirmacion')) cerrarModal();
+}
+
+function confirmarEnvio() {
+    document.getElementById('manifiestoForm').submit();
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') cerrarModal();
+});
+</script>
 {% endblock %}

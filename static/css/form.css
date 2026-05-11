@@ -139,6 +139,13 @@
     box-shadow: none;
 }
 
+.btn-primary:disabled {
+    background: #93c5fd;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 /* ── Botón peligro ── */
 .btn-danger {
     display: inline-flex;
