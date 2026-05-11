@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Nuevo manifiesto — Sistema de Control y Trazabilidad de Unidades{% endblock %}
+{% block title %}{% if manifiesto %}Editar manifiesto #{{ manifiesto.pk }}{% else %}Nuevo manifiesto{% endif %} — Sistema de Control y Trazabilidad de Unidades{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -11,12 +11,17 @@
 
 {% block body %}
 <div class="app-layout">
-    {% include "partials/sidebar.html" with active_nav="nuevo_manifiesto" %}
+    {% include "partials/sidebar.html" with active_nav=active_nav %}
 
     <main class="main-content">
         <header class="page-header">
+            {% if manifiesto %}
+            <h1>Editar manifiesto <span style="color:var(--color-text-muted);font-weight:500">#{{ manifiesto.pk }}</span></h1>
+            <p>{{ manifiesto.sucursal_origen.nombre }} → {{ manifiesto.sucursal_destino.nombre }}</p>
+            {% else %}
             <h1>Nuevo manifiesto</h1>
             <p>Registra el origen, destino y unidades del viaje</p>
+            {% endif %}
         </header>
 
         <section class="page-body">
@@ -136,7 +141,11 @@
 
                     <div class="form-actions">
                         <a href="{% url 'manifiestos:list' %}" class="btn-secondary-sm">Cancelar</a>
-                        <button type="button" class="btn-primary" id="btnRegistrar" onclick="abrirConfirmacion()" disabled>Registrar manifiesto</button>
+                        {% if manifiesto %}
+                        <button type="submit" class="btn-primary" id="btnAccion" disabled>Guardar cambios</button>
+                        {% else %}
+                        <button type="button" class="btn-primary" id="btnAccion" onclick="abrirConfirmacion()" disabled>Registrar manifiesto</button>
+                        {% endif %}
                     </div>
                 </form>
             </div>
@@ -145,7 +154,8 @@
     </main>
 </div>
 
-<!-- Modal de confirmación -->
+{% if not manifiesto %}
+<!-- Modal de confirmación (solo en creación) -->
 <div class="modal-overlay" id="modalConfirmacion" onclick="cerrarSiEsFondo(event)">
     <div class="modal-card">
         <div class="modal-header">
@@ -167,24 +177,19 @@
             </div>
             <dl class="modal-detalle">
                 <div class="modal-detalle-fila">
-                    <dt>Tractor</dt>
-                    <dd id="modalTractor"></dd>
+                    <dt>Tractor</dt><dd id="modalTractor"></dd>
                 </div>
                 <div class="modal-detalle-fila">
-                    <dt>Remolque</dt>
-                    <dd id="modalRemolque"></dd>
+                    <dt>Remolque</dt><dd id="modalRemolque"></dd>
                 </div>
                 <div class="modal-detalle-fila">
-                    <dt>Salida</dt>
-                    <dd id="modalSalida"></dd>
+                    <dt>Salida</dt><dd id="modalSalida"></dd>
                 </div>
                 <div class="modal-detalle-fila" id="filaLlegada">
-                    <dt>Llegada est.</dt>
-                    <dd id="modalLlegada"></dd>
+                    <dt>Llegada est.</dt><dd id="modalLlegada"></dd>
                 </div>
                 <div class="modal-detalle-fila" id="filaObs">
-                    <dt>Observaciones</dt>
-                    <dd id="modalObs"></dd>
+                    <dt>Observaciones</dt><dd id="modalObs"></dd>
                 </div>
             </dl>
         </div>
@@ -194,21 +199,18 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <script>
 (function() {
     const form    = document.getElementById('manifiestoForm');
-    const btn     = document.getElementById('btnRegistrar');
-    const campos  = [
-        form.sucursal_origen,
-        form.sucursal_destino,
-        form.fecha_salida,
-    ];
+    const btn     = document.getElementById('btnAccion');
+    const campos  = [form.sucursal_origen, form.sucursal_destino, form.fecha_salida];
     const unidades = [form.tractor, form.remolque];
 
     function validar() {
-        const camposOk   = campos.every(c => c.value.trim() !== '');
-        const unidadOk   = unidades.some(u => u.value !== '');
+        const camposOk = campos.every(c => c.value.trim() !== '');
+        const unidadOk = unidades.some(u => u.value !== '');
         btn.disabled = !(camposOk && unidadOk);
     }
 
@@ -217,10 +219,10 @@
     validar();
 })();
 
+{% if not manifiesto %}
 function formatDatetime(val) {
     if (!val) return '—';
     const [date, time] = val.split('T');
-    if (!date) return '—';
     const [y, m, d] = date.split('-');
     return `${d}/${m}/${y} ${time || ''}`.trim();
 }
@@ -232,8 +234,8 @@ function selectedText(selectEl) {
 
 function abrirConfirmacion() {
     const form = document.getElementById('manifiestoForm');
-    document.getElementById('modalOrigen').textContent  = selectedText(form.sucursal_origen);
-    document.getElementById('modalDestino').textContent = selectedText(form.sucursal_destino);
+    document.getElementById('modalOrigen').textContent   = selectedText(form.sucursal_origen);
+    document.getElementById('modalDestino').textContent  = selectedText(form.sucursal_destino);
     document.getElementById('modalTractor').textContent  = selectedText(form.tractor);
     document.getElementById('modalRemolque').textContent = selectedText(form.remolque);
     document.getElementById('modalSalida').textContent   = formatDatetime(form.fecha_salida.value);
@@ -264,5 +266,6 @@ function confirmarEnvio() {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') cerrarModal();
 });
+{% endif %}
 </script>
 {% endblock %}

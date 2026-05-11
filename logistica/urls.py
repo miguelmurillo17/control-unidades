@@ -13,6 +13,7 @@ from .views import (
     mis_registros,
     manifiestos_list,
     registrar_manifiesto,
+    editar_manifiesto,
 )
 
 sucursales_urls = ([
@@ -32,6 +33,7 @@ unidades_urls = ([
 manifiestos_urls = ([
     path("", manifiestos_list, name="list"),
     path("nuevo/", registrar_manifiesto, name="create"),
+    path("<int:pk>/editar/", editar_manifiesto, name="update"),
 ], "manifiestos")
 
 urlpatterns = [

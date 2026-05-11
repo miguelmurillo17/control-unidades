@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
@@ -188,4 +188,50 @@ def registrar_manifiesto(request):
     return render(request, "logistica/manifiestos/form.html", {
         "form": form,
         "manifiesto_guardado": manifiesto_guardado,
+        "active_nav": "nuevo_manifiesto",
+    })
+
+
+@login_required
+def editar_manifiesto(request, pk):
+    if request.user.rol != "PLANEACION":
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+
+    manifiesto = get_object_or_404(Manifiesto, pk=pk)
+    tractor  = manifiesto.unidades.filter(tipo="TRACTOR").first()
+    remolque = manifiesto.unidades.filter(tipo="REMOLQUE").first()
+
+    if request.method == "POST":
+        form = ManifiestoForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            manifiesto.sucursal_origen   = data["sucursal_origen"]
+            manifiesto.sucursal_destino  = data["sucursal_destino"]
+            manifiesto.fecha_salida      = data["fecha_salida"]
+            manifiesto.fecha_llegada_est = data.get("fecha_llegada_est")
+            manifiesto.observaciones     = data.get("observaciones", "")
+            manifiesto.save()
+            manifiesto.unidad_manifiestos.all().delete()
+            for unidad in data["unidades"]:
+                UnidadManifiesto.objects.create(manifiesto=manifiesto, unidad=unidad)
+            return redirect("manifiestos:list")
+    else:
+        def fmt(dt):
+            return dt.strftime("%Y-%m-%dT%H:%M") if dt else ""
+
+        form = ManifiestoForm(initial={
+            "sucursal_origen":   manifiesto.sucursal_origen_id,
+            "sucursal_destino":  manifiesto.sucursal_destino_id,
+            "tractor":           tractor.pk  if tractor  else None,
+            "remolque":          remolque.pk if remolque else None,
+            "fecha_salida":      fmt(manifiesto.fecha_salida),
+            "fecha_llegada_est": fmt(manifiesto.fecha_llegada_est),
+            "observaciones":     manifiesto.observaciones,
+        })
+
+    return render(request, "logistica/manifiestos/form.html", {
+        "form": form,
+        "manifiesto": manifiesto,
+        "active_nav": "manifiestos",
     })
