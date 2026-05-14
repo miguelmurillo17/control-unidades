@@ -30,6 +30,7 @@
                     <thead>
                         <tr>
                             <th>#</th>
+                            <th>Folio</th>
                             <th>Origen</th>
                             <th>Destino</th>
                             <th>Tractor</th>
@@ -43,6 +44,7 @@
                         {% for m in manifiestos %}
                         <tr>
                             <td class="cell-primary">{{ m.pk }}</td>
+                            <td>{{ m.folio_hoja_viajera|default:"—" }}</td>
                             <td>{{ m.sucursal_origen.nombre }}</td>
                             <td>{{ m.sucursal_destino.nombre }}</td>
                             <td>

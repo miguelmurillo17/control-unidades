@@ -3,11 +3,12 @@ from .models import Movimiento, Unidad, UnidadMovimiento
 # Transiciones válidas por tipo de último movimiento
 _TRANSICIONES_VALIDAS = {
     None:             {"ENTRADA"},
-    "ENTRADA":        {"SALIDA", "TALLER_ENTRADA"},
-    "SALIDA":         {"ENTRADA"},
-    "TALLER_ENTRADA": {"TALLER_SALIDA"},
-    "TALLER_SALIDA":  {"ENTRADA", "SALIDA"},
-    "CORRECCION":     {"ENTRADA", "SALIDA", "TALLER_ENTRADA", "TALLER_SALIDA"},
+    "ENTRADA":        {"SALIDA", "TALLER_ENTRADA", "INSPECCION"},
+    "SALIDA":         {"ENTRADA", "INSPECCION"},
+    "TALLER_ENTRADA": {"TALLER_SALIDA", "INSPECCION"},
+    "TALLER_SALIDA":  {"ENTRADA", "SALIDA", "INSPECCION"},
+    "CORRECCION":     {"ENTRADA", "SALIDA", "TALLER_ENTRADA", "TALLER_SALIDA", "INSPECCION"},
+    "INSPECCION":     {"ENTRADA", "SALIDA", "TALLER_ENTRADA", "TALLER_SALIDA", "INSPECCION"},
 }
 
 _DESCRIPCIONES = {
@@ -15,6 +16,7 @@ _DESCRIPCIONES = {
     "SALIDA":         "Salida",
     "TALLER_ENTRADA": "Entrada a taller",
     "TALLER_SALIDA":  "Salida de taller",
+    "INSPECCION":     "Inspección",
 }
 
 

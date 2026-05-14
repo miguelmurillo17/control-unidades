@@ -51,6 +51,16 @@
                     <div class="form-grid">
 
                         <div class="field">
+                            <label for="{{ form.folio_hoja_viajera.id_for_label }}">{{ form.folio_hoja_viajera.label }}</label>
+                            <input type="text"
+                                   id="{{ form.folio_hoja_viajera.id_for_label }}"
+                                   name="{{ form.folio_hoja_viajera.html_name }}"
+                                   value="{{ form.folio_hoja_viajera.value|default:'' }}"
+                                   class="{% if form.folio_hoja_viajera.errors %}input-error{% endif %}">
+                            {% if form.folio_hoja_viajera.errors %}<span class="field-error">{{ form.folio_hoja_viajera.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
                             <label for="{{ form.sucursal_origen.id_for_label }}">{{ form.sucursal_origen.label }}</label>
                             <select id="{{ form.sucursal_origen.id_for_label }}" name="{{ form.sucursal_origen.html_name }}"
                                     class="{% if form.sucursal_origen.errors %}input-error{% endif %}">
@@ -177,6 +187,9 @@
             </div>
             <dl class="modal-detalle">
                 <div class="modal-detalle-fila">
+                    <dt>Folio</dt><dd id="modalFolio"></dd>
+                </div>
+                <div class="modal-detalle-fila">
                     <dt>Tractor</dt><dd id="modalTractor"></dd>
                 </div>
                 <div class="modal-detalle-fila">
@@ -205,7 +218,7 @@
 (function() {
     const form    = document.getElementById('manifiestoForm');
     const btn     = document.getElementById('btnAccion');
-    const campos  = [form.sucursal_origen, form.sucursal_destino, form.fecha_salida];
+    const campos  = [form.folio_hoja_viajera, form.sucursal_origen, form.sucursal_destino, form.fecha_salida];
     const unidades = [form.tractor, form.remolque];
 
     function validar() {
@@ -234,6 +247,7 @@ function selectedText(selectEl) {
 
 function abrirConfirmacion() {
     const form = document.getElementById('manifiestoForm');
+    document.getElementById('modalFolio').textContent    = form.folio_hoja_viajera.value;
     document.getElementById('modalOrigen').textContent   = selectedText(form.sucursal_origen);
     document.getElementById('modalDestino').textContent  = selectedText(form.sucursal_destino);
     document.getElementById('modalTractor').textContent  = selectedText(form.tractor);

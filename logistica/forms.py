@@ -9,6 +9,7 @@ TIPO_CHOICES_CASETA = [
     ("SALIDA",         "Salida"),
     ("TALLER_ENTRADA", "Entrada a taller"),
     ("TALLER_SALIDA",  "Salida de taller"),
+    ("INSPECCION",     "Inspección"),
 ]
 
 
@@ -60,6 +61,10 @@ class MovimientoForm(forms.Form):
 
 
 class ManifiestoForm(forms.Form):
+    folio_hoja_viajera = forms.CharField(
+        label="Folio hoja viajera",
+        max_length=50,
+    )
     tractor = forms.ModelChoiceField(
         queryset=Unidad.objects.filter(activo=True, tipo="TRACTOR").order_by("numero_economico"),
         required=False,

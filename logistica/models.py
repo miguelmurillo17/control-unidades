@@ -37,13 +37,17 @@ class Movimiento(models.Model):
         ("TALLER_ENTRADA", "Entrada a taller"),
         ("TALLER_SALIDA",  "Salida de taller"),
         ("CORRECCION",     "Corrección"),
+        ("INSPECCION",     "Inspección"),
     ]
     unidades              = models.ManyToManyField(Unidad, through="UnidadMovimiento")
     tipo                  = models.CharField(max_length=30, choices=TIPO_CHOICES)
-    sucursal              = models.ForeignKey(Sucursal,  on_delete=models.PROTECT)
+    sucursal              = models.ForeignKey(Sucursal,    on_delete=models.PROTECT)
+    manifiesto            = models.ForeignKey(
+        "Manifiesto", null=True, blank=True, on_delete=models.SET_NULL, related_name="movimientos"
+    )
     fecha_hora_evento     = models.DateTimeField()
     fecha_hora_registro   = models.DateTimeField(auto_now_add=True)
-    usuario               = models.ForeignKey(Usuario,   on_delete=models.PROTECT)
+    usuario               = models.ForeignKey(Usuario,    on_delete=models.PROTECT)
     observaciones         = models.TextField(blank=True)
     inconsistente         = models.BooleanField(default=False)
     cancelado             = models.BooleanField(default=False)
@@ -68,8 +72,9 @@ class Manifiesto(models.Model):
         ("COMPLETADO",  "Completado"),
         ("CANCELADO",   "Cancelado"),
     ]
-    unidades          = models.ManyToManyField(Unidad, through="UnidadManifiesto")
-    sucursal_origen   = models.ForeignKey(
+    folio_hoja_viajera = models.CharField("Folio hoja viajera", max_length=50, unique=True, null=True, blank=True)
+    unidades           = models.ManyToManyField(Unidad, through="UnidadManifiesto")
+    sucursal_origen    = models.ForeignKey(
         Sucursal, on_delete=models.PROTECT, related_name="manifiestos_origen"
     )
     sucursal_destino  = models.ForeignKey(
