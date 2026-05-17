@@ -127,4 +127,39 @@
         </section>
     </main>
 </div>
+
+<script>
+(function () {
+    const añoMax = new Date().getFullYear() + 1;
+    const añoMin = 1950;
+
+    document.querySelectorAll('input[type="number"]').forEach(function (input) {
+        input.addEventListener('keydown', function (e) {
+            const allowed = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'];
+            if (!allowed.includes(e.key) && !/^\d$/.test(e.key)) {
+                e.preventDefault();
+            }
+        });
+
+        function validarAño() {
+            if (!input.value) {
+                input.setCustomValidity('');
+                input.classList.remove('input-error');
+                return;
+            }
+            const val = parseInt(input.value, 10);
+            if (isNaN(val) || val < añoMin || val > añoMax) {
+                input.setCustomValidity('Ingresa un año entre ' + añoMin + ' y ' + añoMax);
+                input.classList.add('input-error');
+            } else {
+                input.setCustomValidity('');
+                input.classList.remove('input-error');
+            }
+        }
+
+        input.addEventListener('input', validarAño);
+        input.addEventListener('blur',  validarAño);
+    });
+})();
+</script>
 {% endblock %}

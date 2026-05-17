@@ -148,11 +148,13 @@ class SubInspeccionForm(forms.ModelForm):
 
 class DetalleGeneralForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        import datetime
         super().__init__(*args, **kwargs)
         self.fields["marca_remolque"].queryset   = Marca.objects.filter(aplica_remolque=True,   activo=True)
         self.fields["marca_contenedor"].queryset = Marca.objects.filter(aplica_contenedor=True, activo=True)
-        for field in self.fields.values():
-            field.required = False
+        año_max = datetime.date.today().year + 1
+        for name in ("anio_remolque", "anio_contenedor"):
+            self.fields[name].widget = forms.NumberInput(attrs={"min": 1950, "max": año_max})
 
     class Meta:
         model  = DetalleGeneral

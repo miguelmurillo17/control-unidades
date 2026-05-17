@@ -27,6 +27,7 @@
 .field input[type="text"],
 .field input[type="password"],
 .field input[type="email"],
+.field input[type="number"],
 .field select,
 .field textarea,
 .field input[type="datetime-local"] {
@@ -46,10 +47,16 @@
 .field input[type="text"]:hover,
 .field input[type="password"]:hover,
 .field input[type="email"]:hover,
+.field input[type="number"]:hover,
 .field select:hover,
 .field textarea:hover,
 .field input[type="datetime-local"]:hover {
     border-color: #94a3b8;
+}
+
+.field input[type="number"]::-webkit-inner-spin-button,
+.field input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
 }
 
 .field textarea {
