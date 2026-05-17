@@ -11,6 +11,7 @@ from .views import (
     UnidadDeleteView,
     registrar_movimiento,
     mis_registros,
+    mis_inspecciones,
     manifiestos_list,
     registrar_manifiesto,
     editar_manifiesto,
@@ -44,6 +45,7 @@ urlpatterns = [
     path("manifiestos/", include(manifiestos_urls)),
     path("movimientos/registrar/", registrar_movimiento, name="registrar_movimiento"),
     path("movimientos/mis-registros/", mis_registros, name="mis_registros"),
+    path("inspecciones/", mis_inspecciones, name="mis_inspecciones"),
     path("inspecciones/<int:pk>/", inspeccion_detalle, name="inspeccion_detalle"),
     path("inspecciones/<int:pk>/sub/<int:sub_pk>/", sub_inspeccion_form, name="sub_inspeccion_form"),
 ]

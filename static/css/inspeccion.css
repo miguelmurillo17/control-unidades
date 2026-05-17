@@ -102,6 +102,14 @@
     font-weight: 500;
 }
 
+/* Contador de progreso en lista */
+.progreso-contador {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+
 /* Link muted en el breadcrumb */
 .link-muted {
     color: var(--color-text-muted);

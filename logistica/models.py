@@ -88,7 +88,7 @@ class Manifiesto(models.Model):
     created_at        = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Manifiesto #{self.pk} — {self.sucursal_origen} → {self.sucursal_destino}'
+        return f'Hoja Viajera: {self.folio_hoja_viajera} - Manifiesto #{self.pk} — {self.sucursal_origen} → {self.sucursal_destino}'
 
 
 class UnidadManifiesto(models.Model):

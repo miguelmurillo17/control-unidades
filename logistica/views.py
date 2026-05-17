@@ -4,6 +4,8 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
+from django.db.models import Count, Q
+
 from .forms import MovimientoForm, ManifiestoForm, SubInspeccionForm
 from .models import Inspeccion, Manifiesto, Movimiento, SubInspeccion, Sucursal, Unidad, UnidadManifiesto
 from .services import detectar_inconsistencias, crear_movimiento
@@ -141,6 +143,27 @@ def registrar_movimiento(request):
     return render(request, "logistica/movimientos/form.html", {
         "form": form,
         "movimiento_guardado": movimiento_guardado,
+    })
+
+
+@login_required
+def mis_inspecciones(request):
+    if request.user.rol not in ("CASETA", "ADMIN"):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+
+    inspecciones = (
+        Inspeccion.objects
+        .filter(movimiento__usuario=request.user)
+        .select_related("movimiento__manifiesto__sucursal_origen", "movimiento__manifiesto__sucursal_destino")
+        .annotate(
+            total_subs=Count("sub_inspecciones"),
+            completadas_subs=Count("sub_inspecciones", filter=Q(sub_inspecciones__resultado__gt="")),
+        )
+        .order_by("-created_at")
+    )
+    return render(request, "logistica/inspecciones/mis_inspecciones.html", {
+        "inspecciones": inspecciones,
     })
 
 

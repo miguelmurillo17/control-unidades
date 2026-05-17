@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mis inspecciones — Sistema de Control y Trazabilidad de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+<link rel="stylesheet" href="{% static 'css/inspeccion.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="mis_inspecciones" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div>
+                <h1>Mis inspecciones</h1>
+                <p>De la más reciente a la más antigua</p>
+            </div>
+        </header>
+
+        <section class="page-body">
+            {% if inspecciones %}
+            <div class="table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Manifiesto</th>
+                            <th>Ruta</th>
+                            <th>Progreso</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for insp in inspecciones %}
+                        <tr>
+                            <td class="cell-primary">{{ insp.pk }}</td>
+                            <td>
+                                {% with m=insp.movimiento.manifiesto %}
+                                {% if m %}{% if m.folio_hoja_viajera %}{{ m.folio_hoja_viajera }}{% else %}#{{ m.pk }}{% endif %}{% else %}—{% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                {% with m=insp.movimiento.manifiesto %}
+                                {% if m %}{{ m.sucursal_origen.nombre }} → {{ m.sucursal_destino.nombre }}{% else %}—{% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <span class="progreso-contador">{{ insp.completadas_subs }} / {{ insp.total_subs }}</span>
+                            </td>
+                            <td>
+                                {% if insp.estado == "EN_PROCESO" %}
+                                <span class="badge badge-yellow">En proceso</span>
+                                {% elif insp.estado == "COMPLETADA" %}
+                                <span class="badge badge-green">Completada</span>
+                                {% elif insp.estado == "RECHAZADA" %}
+                                <span class="badge badge-red">Rechazada</span>
+                                {% endif %}
+                            </td>
+                            <td class="cell-actions">
+                                <a href="{% url 'inspeccion_detalle' insp.pk %}" class="action-link">Ver</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No tienes inspecciones registradas aún.</p>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}
