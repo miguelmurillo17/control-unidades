@@ -242,24 +242,24 @@ class FotoSubInspeccion(models.Model):
 
 class DetalleGeneral(models.Model):
     sub_inspeccion   = models.OneToOneField(SubInspeccion, on_delete=models.CASCADE, related_name="detalle_general")
-    id_caja          = models.CharField("ID caja",       max_length=50,  blank=True)
+    id_caja          = models.CharField("# Caja",       max_length=50,  blank=True)
     linea            = models.CharField("Línea",         max_length=100, blank=True)
     placas           = models.CharField(                 max_length=20,  blank=True)
     estado           = models.CharField(                 max_length=100, blank=True)
     chofer           = models.CharField(                 max_length=100, blank=True)
-    id_tractor       = models.CharField("ID tractor",   max_length=50,  blank=True)
+    id_tractor       = models.CharField("# Tractor",   max_length=50,  blank=True)
     fianza           = models.CharField(                 max_length=100, blank=True)
-    año_remolque     = models.PositiveSmallIntegerField("Año remolque",    null=True, blank=True)
+    anio_remolque     = models.PositiveSmallIntegerField("Año remolque",    null=True, blank=True)
     vin_remolque     = models.CharField("VIN remolque",  max_length=50,  blank=True)
     marca_remolque   = models.ForeignKey(
         Marca, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
-    año_contenedor   = models.PositiveSmallIntegerField("Año contenedor",  null=True, blank=True)
+    anio_contenedor   = models.PositiveSmallIntegerField("Año contenedor",  null=True, blank=True)
     vin_contenedor   = models.CharField("VIN contenedor", max_length=50, blank=True)
     marca_contenedor = models.ForeignKey(
         Marca, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
-    numero_sello     = models.CharField("Número de sello", max_length=50, blank=True)
+    numero_sello     = models.CharField("# Sello", max_length=50, blank=True)
 
     def __str__(self):
         return f'General — {self.sub_inspeccion}'

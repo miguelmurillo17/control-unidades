@@ -102,6 +102,21 @@
     font-weight: 500;
 }
 
+/* Secciones dentro de formularios de sub-inspección */
+.form-section {
+    margin-bottom: 24px;
+}
+
+.form-section-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: 10px;
+    padding-left: 2px;
+}
+
 /* Contador de progreso en lista */
 .progreso-contador {
     font-variant-numeric: tabular-nums;

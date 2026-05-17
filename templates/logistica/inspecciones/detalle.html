@@ -76,7 +76,7 @@
                                 <span class="badge badge-yellow">Pendiente</span>
                                 {% endif %}
                             </td>
-                            <td class="cell-obs">{{ sub.observaciones|default:"—" }}</td>
+                            <td class="cell-obs">{{ sub.comentarios|default:"—" }}</td>
                             <td class="cell-actions">
                                 {% if inspeccion.estado == "EN_PROCESO" %}
                                 <a href="{% url 'sub_inspeccion_form' inspeccion.pk sub.pk %}" class="action-link">

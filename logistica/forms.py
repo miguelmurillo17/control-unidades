@@ -1,7 +1,7 @@
 from django import forms
 from django.utils import timezone
 
-from .models import Unidad, Sucursal, Manifiesto, SubInspeccion
+from .models import Unidad, Sucursal, Manifiesto, SubInspeccion, DetalleGeneral, Marca
 
 def _manifiestos_activos():
     return (
@@ -144,3 +144,21 @@ class SubInspeccionForm(forms.ModelForm):
         model   = SubInspeccion
         fields  = ["resultado", "comentarios"]
         widgets = {"comentarios": forms.Textarea(attrs={"rows": 3})}
+
+
+class DetalleGeneralForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["marca_remolque"].queryset   = Marca.objects.filter(aplica_remolque=True,   activo=True)
+        self.fields["marca_contenedor"].queryset = Marca.objects.filter(aplica_contenedor=True, activo=True)
+        for field in self.fields.values():
+            field.required = False
+
+    class Meta:
+        model  = DetalleGeneral
+        fields = [
+            "id_caja", "linea", "placas", "estado", "chofer", "id_tractor", "fianza",
+            "anio_remolque", "vin_remolque", "marca_remolque",
+            "anio_contenedor", "vin_contenedor", "marca_contenedor",
+            "numero_sello",
+        ]

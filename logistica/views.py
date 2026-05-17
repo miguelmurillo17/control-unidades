@@ -6,8 +6,8 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
 from django.db.models import Count, Q
 
-from .forms import MovimientoForm, ManifiestoForm, SubInspeccionForm
-from .models import Inspeccion, Manifiesto, Movimiento, SubInspeccion, Sucursal, Unidad, UnidadManifiesto
+from .forms import MovimientoForm, ManifiestoForm, SubInspeccionForm, DetalleGeneralForm
+from .models import DetalleGeneral, Inspeccion, Manifiesto, Movimiento, SubInspeccion, Sucursal, Unidad, UnidadManifiesto
 from .services import detectar_inconsistencias, crear_movimiento
 
 
@@ -194,24 +194,41 @@ def inspeccion_detalle(request, pk):
     })
 
 
+def _marcar_completada_si_aplica(inspeccion):
+    todas = inspeccion.sub_inspecciones.all()
+    if all(s.resultado for s in todas):
+        inspeccion.estado = "COMPLETADA"
+        inspeccion.save(update_fields=["estado"])
+
+
 @login_required
 def sub_inspeccion_form(request, pk, sub_pk):
     if request.user.rol not in ("CASETA", "ADMIN"):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
 
-    inspeccion    = get_object_or_404(Inspeccion, pk=pk)
+    inspeccion     = get_object_or_404(Inspeccion, pk=pk)
     sub_inspeccion = get_object_or_404(SubInspeccion, pk=sub_pk, inspeccion=inspeccion)
 
+    # Registrar inicio automáticamente al abrir por primera vez
+    if not sub_inspeccion.fecha_hora_inicio:
+        from django.utils import timezone
+        sub_inspeccion.fecha_hora_inicio = timezone.now()
+        sub_inspeccion.save(update_fields=["fecha_hora_inicio"])
+
+    if sub_inspeccion.tipo == "GENERAL":
+        return _sub_form_general(request, inspeccion, sub_inspeccion)
+
+    # Formulario genérico para tipos aún no implementados
     if request.method == "POST":
         form = SubInspeccionForm(request.POST, instance=sub_inspeccion)
         if form.is_valid():
-            form.save()
-            # Si todas las sub-inspecciones tienen resultado, marcar como completada
-            todas = inspeccion.sub_inspecciones.all()
-            if all(s.resultado for s in todas):
-                inspeccion.estado = "COMPLETADA"
-                inspeccion.save(update_fields=["estado"])
+            sub = form.save(commit=False)
+            if sub.resultado:
+                from django.utils import timezone
+                sub.fecha_hora_fin = timezone.now()
+            sub.save()
+            _marcar_completada_si_aplica(inspeccion)
             return redirect("inspeccion_detalle", pk=inspeccion.pk)
     else:
         form = SubInspeccionForm(instance=sub_inspeccion)
@@ -220,6 +237,35 @@ def sub_inspeccion_form(request, pk, sub_pk):
         "inspeccion":     inspeccion,
         "sub_inspeccion": sub_inspeccion,
         "form":           form,
+    })
+
+
+def _sub_form_general(request, inspeccion, sub_inspeccion):
+    detalle = DetalleGeneral.objects.filter(sub_inspeccion=sub_inspeccion).first()
+
+    if request.method == "POST":
+        sub_form    = SubInspeccionForm(request.POST, instance=sub_inspeccion)
+        detalle_form = DetalleGeneralForm(request.POST, instance=detalle)
+        if sub_form.is_valid() and detalle_form.is_valid():
+            sub = sub_form.save(commit=False)
+            if sub.resultado:
+                from django.utils import timezone
+                sub.fecha_hora_fin = timezone.now()
+            sub.save()
+            det = detalle_form.save(commit=False)
+            det.sub_inspeccion = sub_inspeccion
+            det.save()
+            _marcar_completada_si_aplica(inspeccion)
+            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+    else:
+        sub_form     = SubInspeccionForm(instance=sub_inspeccion)
+        detalle_form = DetalleGeneralForm(instance=detalle)
+
+    return render(request, "logistica/inspecciones/sub_general.html", {
+        "inspeccion":     inspeccion,
+        "sub_inspeccion": sub_inspeccion,
+        "sub_form":       sub_form,
+        "detalle_form":   detalle_form,
     })
 
 
