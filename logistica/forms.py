@@ -1,7 +1,7 @@
 from django import forms
 from django.utils import timezone
 
-from .models import Unidad, Sucursal, Manifiesto, SubInspeccion, DetalleGeneral, DetalleCaja, Marca
+from .models import Unidad, Sucursal, Manifiesto, SubInspeccion, DetalleGeneral, DetalleCaja, DetalleCajaVacia, Marca
 
 def _manifiestos_activos():
     return (
@@ -173,4 +173,15 @@ class DetalleCajaForm(forms.ModelForm):
             "remaches_de_carga", "manitas", "patines", "soqueteras",
             "manivelas", "golpes_y_rallones", "reflejantes", "molduras",
             "bisagras", "llantas", "receptor_electrico", "luz_lateral", "luz_trasera",
+        ]
+
+
+class DetalleCajaVaciaForm(forms.ModelForm):
+    class Meta:
+        model  = DetalleCajaVacia
+        fields = [
+            "techo_libre_filtraciones", "libre_olores",
+            "pisos_integros", "paredes_integros", "techos_integros",
+            "bisagras", "mecanismos_de_cierre", "puertas_simetricas",
+            "parches_y_reparaciones", "limpieza", "paredes_de_interior",
         ]

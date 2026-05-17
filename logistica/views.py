@@ -6,8 +6,8 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
 from django.db.models import Count, Q
 
-from .forms import MovimientoForm, ManifiestoForm, SubInspeccionForm, DetalleGeneralForm, DetalleCajaForm
-from .models import DetalleGeneral, DetalleCaja, Inspeccion, Manifiesto, Movimiento, SubInspeccion, Sucursal, Unidad, UnidadManifiesto
+from .forms import MovimientoForm, ManifiestoForm, SubInspeccionForm, DetalleGeneralForm, DetalleCajaForm, DetalleCajaVaciaForm
+from .models import DetalleGeneral, DetalleCaja, DetalleCajaVacia, Inspeccion, Manifiesto, Movimiento, SubInspeccion, Sucursal, Unidad, UnidadManifiesto
 from .services import detectar_inconsistencias, crear_movimiento
 
 
@@ -220,6 +220,8 @@ def sub_inspeccion_form(request, pk, sub_pk):
         return _sub_form_general(request, inspeccion, sub_inspeccion)
     if sub_inspeccion.tipo == "CAJA":
         return _sub_form_caja(request, inspeccion, sub_inspeccion)
+    if sub_inspeccion.tipo == "CAJA_VACIA":
+        return _sub_form_caja_vacia(request, inspeccion, sub_inspeccion)
 
     # Formulario genérico para tipos aún no implementados
     if request.method == "POST":
@@ -293,6 +295,35 @@ def _sub_form_caja(request, inspeccion, sub_inspeccion):
         detalle_form = DetalleCajaForm(instance=detalle)
 
     return render(request, "logistica/inspecciones/sub_caja.html", {
+        "inspeccion":     inspeccion,
+        "sub_inspeccion": sub_inspeccion,
+        "sub_form":       sub_form,
+        "detalle_form":   detalle_form,
+    })
+
+
+def _sub_form_caja_vacia(request, inspeccion, sub_inspeccion):
+    detalle = DetalleCajaVacia.objects.filter(sub_inspeccion=sub_inspeccion).first()
+
+    if request.method == "POST":
+        sub_form     = SubInspeccionForm(request.POST, instance=sub_inspeccion)
+        detalle_form = DetalleCajaVaciaForm(request.POST, instance=detalle)
+        if sub_form.is_valid() and detalle_form.is_valid():
+            sub = sub_form.save(commit=False)
+            if sub.resultado:
+                from django.utils import timezone
+                sub.fecha_hora_fin = timezone.now()
+            sub.save()
+            det = detalle_form.save(commit=False)
+            det.sub_inspeccion = sub_inspeccion
+            det.save()
+            _marcar_completada_si_aplica(inspeccion)
+            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+    else:
+        sub_form     = SubInspeccionForm(instance=sub_inspeccion)
+        detalle_form = DetalleCajaVaciaForm(instance=detalle)
+
+    return render(request, "logistica/inspecciones/sub_caja_vacia.html", {
         "inspeccion":     inspeccion,
         "sub_inspeccion": sub_inspeccion,
         "sub_form":       sub_form,
