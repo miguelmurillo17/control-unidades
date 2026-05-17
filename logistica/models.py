@@ -162,8 +162,7 @@ class SubInspeccion(models.Model):
 
 # ─── Choices compartidos en detalles de sub-inspección ───────────────────────
 
-_SINO_NA = [("SI", "Sí"), ("NO", "No"), ("NA", "N/A")]
-_SINO    = [("SI", "Sí"), ("NO", "No")]
+_SINO = [("SI", "Sí"), ("NO", "No")]
 
 
 # ─── Catálogos ───────────────────────────────────────────────────────────────
@@ -267,14 +266,19 @@ class DetalleGeneral(models.Model):
 
 class DetalleCaja(models.Model):
     sub_inspeccion    = models.OneToOneField(SubInspeccion, on_delete=models.CASCADE, related_name="detalle_caja")
-    remaches_de_carga = models.CharField(max_length=2, choices=_SINO_NA, blank=True)
-    manitas           = models.CharField(max_length=2, choices=_SINO_NA, blank=True)
-    patines           = models.CharField(max_length=2, choices=_SINO_NA, blank=True)
-    soqueteras        = models.CharField(max_length=2, choices=_SINO_NA, blank=True)
-    manivelas         = models.CharField(max_length=2, choices=_SINO_NA, blank=True)
-    golpes_y_rallones = models.CharField("Golpes y rayones", max_length=2, choices=_SINO_NA, blank=True)
-    reflejantes       = models.CharField(max_length=2, choices=_SINO_NA, blank=True)
-    molduras          = models.CharField(max_length=2, choices=_SINO_NA, blank=True)
+    remaches_de_carga = models.CharField(max_length=2, choices=_SINO, blank=True)
+    manitas           = models.CharField(max_length=2, choices=_SINO, blank=True)
+    patines           = models.CharField(max_length=2, choices=_SINO, blank=True)
+    soqueteras        = models.CharField(max_length=2, choices=_SINO, blank=True)
+    manivelas         = models.CharField(max_length=2, choices=_SINO, blank=True)
+    golpes_y_rallones = models.CharField("Golpes y rayones", max_length=2, choices=_SINO, blank=True)
+    reflejantes       = models.CharField(max_length=2, choices=_SINO, blank=True)
+    molduras          = models.CharField(max_length=2, choices=_SINO, blank=True)
+    bisagras          = models.CharField(max_length=2, choices=_SINO, blank=True)
+    llantas           = models.CharField("Llantas sin ponchar", max_length=2, choices=_SINO, blank=True)
+    receptor_electrico     = models.CharField("Receptor eléctrico", max_length=2, choices=_SINO, blank=True)
+    luz_lateral       = models.CharField("Luz lateral (led/normal)", max_length=2, choices=_SINO, blank=True)
+    luz_trasera       = models.CharField("Luz trasera (led/normal)", max_length=2, choices=_SINO, blank=True)
 
     def __str__(self):
         return f'Caja — {self.sub_inspeccion}'
@@ -282,17 +286,17 @@ class DetalleCaja(models.Model):
 
 class DetalleCajaVacia(models.Model):
     sub_inspeccion           = models.OneToOneField(SubInspeccion, on_delete=models.CASCADE, related_name="detalle_caja_vacia")
-    techo_libre_filtraciones = models.CharField("Techo libre de filtraciones", max_length=2, choices=_SINO_NA, blank=True)
-    libre_olores             = models.CharField("Libre de olores",             max_length=2, choices=_SINO_NA, blank=True)
-    pisos_integros           = models.CharField("Pisos íntegros",              max_length=2, choices=_SINO_NA, blank=True)
-    paredes_integros         = models.CharField("Paredes íntegras",            max_length=2, choices=_SINO_NA, blank=True)
-    techos_integros          = models.CharField("Techos íntegros",             max_length=2, choices=_SINO_NA, blank=True)
-    bisagras                 = models.CharField(                                max_length=2, choices=_SINO_NA, blank=True)
-    mecanismos_de_cierre     = models.CharField("Mecanismos de cierre",        max_length=2, choices=_SINO_NA, blank=True)
-    puertas_simetricas       = models.CharField("Puertas simétricas",          max_length=2, choices=_SINO_NA, blank=True)
-    parches_y_reparaciones   = models.CharField("Parches y reparaciones",      max_length=2, choices=_SINO_NA, blank=True)
-    limpieza                 = models.CharField(                                max_length=2, choices=_SINO_NA, blank=True)
-    paredes_de_interior      = models.CharField("Paredes de interior",         max_length=2, choices=_SINO_NA, blank=True)
+    techo_libre_filtraciones = models.CharField("Techo libre de filtraciones", max_length=2, choices=_SINO, blank=True)
+    libre_olores             = models.CharField("Libre de olores",             max_length=2, choices=_SINO, blank=True)
+    pisos_integros           = models.CharField("Pisos íntegros",              max_length=2, choices=_SINO, blank=True)
+    paredes_integros         = models.CharField("Paredes íntegras",            max_length=2, choices=_SINO, blank=True)
+    techos_integros          = models.CharField("Techos íntegros",             max_length=2, choices=_SINO, blank=True)
+    bisagras                 = models.CharField(                                max_length=2, choices=_SINO, blank=True)
+    mecanismos_de_cierre     = models.CharField("Mecanismos de cierre",        max_length=2, choices=_SINO, blank=True)
+    puertas_simetricas       = models.CharField("Puertas simétricas",          max_length=2, choices=_SINO, blank=True)
+    parches_y_reparaciones   = models.CharField("Parches y reparaciones",      max_length=2, choices=_SINO, blank=True)
+    limpieza                 = models.CharField(                                max_length=2, choices=_SINO, blank=True)
+    paredes_de_interior      = models.CharField("Paredes de interior",         max_length=2, choices=_SINO, blank=True)
 
     def __str__(self):
         return f'Caja vacía — {self.sub_inspeccion}'

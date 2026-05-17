@@ -1,0 +1,20 @@
+<tr>
+    <td class="checklist-label">{{ field.label }}</td>
+    {% for val, lbl in field.field.choices %}
+    {% if val %}
+    <td class="checklist-option">
+        <label class="checklist-radio">
+            <input type="radio"
+                   name="{{ field.html_name }}"
+                   value="{{ val }}"
+                   {% if field.value == val %}checked{% endif %}
+                   required>
+            <span>{{ lbl }}</span>
+        </label>
+    </td>
+    {% endif %}
+    {% endfor %}
+    {% if field.errors %}
+    <td><span class="field-error">{{ field.errors.0 }}</span></td>
+    {% endif %}
+</tr>

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Inspección de caja — Inspección #{{ inspeccion.pk }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+<link rel="stylesheet" href="{% static 'css/inspeccion.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="registrar" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div>
+                <h1>Inspección de caja</h1>
+                <p>Inspección <a href="{% url 'inspeccion_detalle' inspeccion.pk %}" class="link-muted">#{{ inspeccion.pk }}</a>
+                {% with m=inspeccion.movimiento.manifiesto %}
+                {% if m %} · {% if m.folio_hoja_viajera %}{{ m.folio_hoja_viajera }}{% else %}#{{ m.pk }}{% endif %}{% endif %}
+                {% endwith %}
+                </p>
+            </div>
+        </header>
+
+        <section class="page-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if sub_form.non_field_errors or detalle_form.non_field_errors %}
+                <div class="field-error" style="margin-bottom:16px">
+                    {{ sub_form.non_field_errors.0 }}{{ detalle_form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                <!-- Checklist -->
+                <div class="form-section">
+                    <h2 class="form-section-title">Puntos de revisión</h2>
+                    <div class="checklist-card">
+                        <table class="checklist-table">
+                            <thead>
+                                <tr>
+                                    <th class="checklist-label-header">Punto</th>
+                                    <th class="checklist-opt-header">Bien</th>
+                                    <th class="checklist-opt-header">Mal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.remaches_de_carga %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.manitas %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.patines %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.soqueteras %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.manivelas %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.golpes_y_rallones %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.reflejantes %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.molduras %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.bisagras %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.llantas %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.receptor_electrico %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.luz_lateral %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.luz_trasera %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Resultado -->
+                <div class="form-section">
+                    <h2 class="form-section-title">Resultado</h2>
+                    <div class="form-card form-card-wide">
+                        <div class="form-grid">
+
+                            <div class="field field-wide">
+                                <label>{{ sub_form.resultado.label }}</label>
+                                <div class="radio-group">
+                                    {% for val, label in sub_form.resultado.field.choices %}
+                                    {% if val %}
+                                    <label class="radio-option">
+                                        <input type="radio"
+                                               name="{{ sub_form.resultado.html_name }}"
+                                               value="{{ val }}"
+                                               {% if sub_form.resultado.value == val %}checked{% endif %}>
+                                        <span>{{ label }}</span>
+                                    </label>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% if sub_form.resultado.errors %}<span class="field-error">{{ sub_form.resultado.errors.0 }}</span>{% endif %}
+                            </div>
+
+                            <div class="field field-wide">
+                                <label for="{{ sub_form.comentarios.id_for_label }}">
+                                    {{ sub_form.comentarios.label }} <span class="field-optional">(opcional)</span>
+                                </label>
+                                <textarea id="{{ sub_form.comentarios.id_for_label }}"
+                                          name="{{ sub_form.comentarios.html_name }}"
+                                          rows="3">{{ sub_form.comentarios.value|default:'' }}</textarea>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'inspeccion_detalle' inspeccion.pk %}" class="btn-secondary-sm">Cancelar</a>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+{% endblock %}
