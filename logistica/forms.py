@@ -1,7 +1,15 @@
 from django import forms
 from django.utils import timezone
 
-from .models import Unidad, Sucursal, Manifiesto
+from .models import Unidad, Sucursal, Manifiesto, SubInspeccion
+
+def _manifiestos_activos():
+    return (
+        Manifiesto.objects
+        .exclude(estado="CANCELADO")
+        .select_related("sucursal_origen", "sucursal_destino")
+        .order_by("-created_at")
+    )
 
 TIPO_CHOICES_CASETA = [
     ("", "— Selecciona —"),
@@ -14,6 +22,11 @@ TIPO_CHOICES_CASETA = [
 
 
 class MovimientoForm(forms.Form):
+    manifiesto = forms.ModelChoiceField(
+        queryset=Manifiesto.objects.none(),
+        empty_label="— Selecciona —",
+        label="Manifiesto",
+    )
     tractor = forms.ModelChoiceField(
         queryset=Unidad.objects.filter(activo=True, tipo="TRACTOR").order_by("numero_economico"),
         required=False,
@@ -45,6 +58,7 @@ class MovimientoForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["manifiesto"].queryset = _manifiestos_activos()
         if not self.data:
             now = timezone.localtime(timezone.now())
             self.fields["fecha_hora_evento"].initial = now.strftime("%Y-%m-%dT%H:%M")
@@ -123,3 +137,10 @@ class ManifiestoForm(forms.Form):
             raise forms.ValidationError("La sucursal de origen y destino no pueden ser la misma.")
         cleaned["unidades"] = unidades
         return cleaned
+
+
+class SubInspeccionForm(forms.ModelForm):
+    class Meta:
+        model   = SubInspeccion
+        fields  = ["resultado", "comentarios"]
+        widgets = {"comentarios": forms.Textarea(attrs={"rows": 3})}

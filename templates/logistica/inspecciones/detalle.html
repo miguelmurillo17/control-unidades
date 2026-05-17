@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Inspección #{{ inspeccion.pk }} — Sistema de Control y Trazabilidad de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+<link rel="stylesheet" href="{% static 'css/inspeccion.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="registrar" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div>
+                <h1>Inspección <span style="color:var(--color-text-muted);font-weight:500">#{{ inspeccion.pk }}</span></h1>
+                {% with m=inspeccion.movimiento.manifiesto %}
+                {% if m %}
+                <p>
+                    {% if m.folio_hoja_viajera %}{{ m.folio_hoja_viajera }} — {% endif %}
+                    {{ m.sucursal_origen.nombre }} → {{ m.sucursal_destino.nombre }}
+                </p>
+                {% endif %}
+                {% endwith %}
+            </div>
+            <div class="insp-estado-badge">
+                {% if inspeccion.estado == "EN_PROCESO" %}
+                <span class="badge badge-yellow">En proceso</span>
+                {% elif inspeccion.estado == "COMPLETADA" %}
+                <span class="badge badge-green">Completada</span>
+                {% elif inspeccion.estado == "RECHAZADA" %}
+                <span class="badge badge-red">Rechazada</span>
+                {% endif %}
+            </div>
+        </header>
+
+        <section class="page-body">
+
+            <!-- Barra de progreso -->
+            <div class="progress-card">
+                <div class="progress-header">
+                    <span class="progress-label">Progreso de la inspección</span>
+                    <span class="progress-count">{{ completadas }} / {{ total }} sub-inspecciones completadas</span>
+                </div>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" style="width: {{ porcentaje }}%"></div>
+                </div>
+            </div>
+
+            <!-- Lista de sub-inspecciones -->
+            <div class="table-card" style="margin-top: 16px">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Resultado</th>
+                            <th>Observaciones</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in sub_inspecciones %}
+                        <tr class="{% if sub.resultado %}row-completada{% else %}row-pendiente{% endif %}">
+                            <td class="cell-primary">{{ sub.get_tipo_display }}</td>
+                            <td>
+                                {% if sub.resultado == "APROBADO" %}
+                                <span class="badge badge-green">Aprobado</span>
+                                {% elif sub.resultado == "RECHAZADO" %}
+                                <span class="badge badge-red">Rechazado</span>
+                                {% elif sub.resultado == "NA" %}
+                                <span class="badge badge-gray">No aplica</span>
+                                {% else %}
+                                <span class="badge badge-yellow">Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td class="cell-obs">{{ sub.observaciones|default:"—" }}</td>
+                            <td class="cell-actions">
+                                {% if inspeccion.estado == "EN_PROCESO" %}
+                                <a href="{% url 'sub_inspeccion_form' inspeccion.pk sub.pk %}" class="action-link">
+                                    {% if sub.resultado %}Editar{% else %}Llenar{% endif %}
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+    </main>
+</div>
+{% endblock %}

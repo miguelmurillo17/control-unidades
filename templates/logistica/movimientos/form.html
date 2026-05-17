@@ -54,6 +54,7 @@
                 </div>
                 <form method="post" class="advertencia-actions">
                     {% csrf_token %}
+                    <input type="hidden" name="manifiesto" value="{{ form.manifiesto.value|default:'' }}">
                     <input type="hidden" name="tractor" value="{{ form.tractor.value|default:'' }}">
                     <input type="hidden" name="remolque" value="{{ form.remolque.value|default:'' }}">
                     <input type="hidden" name="tipo" value="{{ form.tipo.value }}">
@@ -71,6 +72,21 @@
                     {% csrf_token %}
 
                     <div class="form-grid">
+
+                        <div class="field field-wide">
+                            <label for="{{ form.manifiesto.id_for_label }}">{{ form.manifiesto.label }}</label>
+                            <select id="{{ form.manifiesto.id_for_label }}" name="{{ form.manifiesto.html_name }}"
+                                    class="{% if form.manifiesto.errors %}input-error{% endif %}">
+                                <option value="">— Selecciona —</option>
+                                {% for m in form.manifiesto.field.queryset %}
+                                <option value="{{ m.pk }}"
+                                    {% if form.manifiesto.value|stringformat:"s" == m.pk|stringformat:"s" %}selected{% endif %}>
+                                    #{{ m.pk }}{% if m.folio_hoja_viajera %} · {{ m.folio_hoja_viajera }}{% endif %} — {{ m.sucursal_origen.nombre }} → {{ m.sucursal_destino.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.manifiesto.errors %}<span class="field-error">{{ form.manifiesto.errors.0 }}</span>{% endif %}
+                        </div>
 
                         <div class="field">
                             <label for="{{ form.tipo.id_for_label }}">{{ form.tipo.label }}</label>

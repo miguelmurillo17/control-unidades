@@ -4,8 +4,8 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
-from .forms import MovimientoForm, ManifiestoForm
-from .models import Manifiesto, Movimiento, Sucursal, Unidad, UnidadManifiesto
+from .forms import MovimientoForm, ManifiestoForm, SubInspeccionForm
+from .models import Inspeccion, Manifiesto, Movimiento, SubInspeccion, Sucursal, Unidad, UnidadManifiesto
 from .services import detectar_inconsistencias, crear_movimiento
 
 
@@ -132,13 +132,71 @@ def registrar_movimiento(request):
                 })
 
             movimiento_guardado = crear_movimiento(data, request.user)
-            form = MovimientoForm()  # Limpiar formulario para el siguiente registro
+            if movimiento_guardado.tipo == "INSPECCION":
+                return redirect("inspeccion_detalle", pk=movimiento_guardado.inspeccion.pk)
+            form = MovimientoForm()
     else:
         form = MovimientoForm()
 
     return render(request, "logistica/movimientos/form.html", {
         "form": form,
         "movimiento_guardado": movimiento_guardado,
+    })
+
+
+@login_required
+def inspeccion_detalle(request, pk):
+    if request.user.rol not in ("CASETA", "ADMIN"):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+
+    inspeccion = get_object_or_404(
+        Inspeccion.objects.select_related(
+            "movimiento__sucursal",
+            "movimiento__manifiesto__sucursal_origen",
+            "movimiento__manifiesto__sucursal_destino",
+        ).prefetch_related("sub_inspecciones"),
+        pk=pk,
+    )
+    sub_inspecciones = inspeccion.sub_inspecciones.all()
+    completadas = sum(1 for s in sub_inspecciones if s.resultado)
+    total       = len(sub_inspecciones)
+
+    return render(request, "logistica/inspecciones/detalle.html", {
+        "inspeccion":     inspeccion,
+        "sub_inspecciones": sub_inspecciones,
+        "completadas":    completadas,
+        "total":          total,
+        "porcentaje":     int(completadas / total * 100) if total else 0,
+    })
+
+
+@login_required
+def sub_inspeccion_form(request, pk, sub_pk):
+    if request.user.rol not in ("CASETA", "ADMIN"):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+
+    inspeccion    = get_object_or_404(Inspeccion, pk=pk)
+    sub_inspeccion = get_object_or_404(SubInspeccion, pk=sub_pk, inspeccion=inspeccion)
+
+    if request.method == "POST":
+        form = SubInspeccionForm(request.POST, instance=sub_inspeccion)
+        if form.is_valid():
+            form.save()
+            # Si todas las sub-inspecciones tienen resultado, marcar como completada
+            todas = inspeccion.sub_inspecciones.all()
+            if all(s.resultado for s in todas):
+                inspeccion.estado = "COMPLETADA"
+                inspeccion.save(update_fields=["estado"])
+            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+    else:
+        form = SubInspeccionForm(instance=sub_inspeccion)
+
+    return render(request, "logistica/inspecciones/sub_form.html", {
+        "inspeccion":     inspeccion,
+        "sub_inspeccion": sub_inspeccion,
+        "form":           form,
     })
 
 

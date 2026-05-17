@@ -1,4 +1,33 @@
-from .models import Movimiento, Unidad, UnidadMovimiento
+from .models import Movimiento, Unidad, UnidadMovimiento, Inspeccion, SubInspeccion
+
+# Condición por tipo de sub-inspección.
+# Recibe el objeto Inspeccion ya creado (con acceso a movimiento, manifiesto, unidades…).
+# Retorna True si ese tipo aplica para esta inspección.
+# Programar condiciones reales en una etapa posterior.
+CONDICIONES_SUB_INSPECCION = {
+    "GENERAL":           lambda inspeccion: True,
+    "CAJA":              lambda inspeccion: True,
+    "CAJA_VACIA":        lambda inspeccion: True,
+    "LLANTAS":           lambda inspeccion: True,
+    "CINCO_PUNTOS":      lambda inspeccion: True,
+    "DIECINUEVE_PUNTOS": lambda inspeccion: True,
+    "CANINA":            lambda inspeccion: True,
+    "MEDIDAS_REMOLQUE":  lambda inspeccion: True,
+}
+
+
+def sub_tipos_aplicables(inspeccion: Inspeccion) -> list[str]:
+    return [tipo for tipo, cond in CONDICIONES_SUB_INSPECCION.items() if cond(inspeccion)]
+
+
+def crear_inspeccion(movimiento: Movimiento) -> Inspeccion:
+    inspeccion = Inspeccion.objects.create(movimiento=movimiento)
+    tipos = sub_tipos_aplicables(inspeccion)
+    SubInspeccion.objects.bulk_create([
+        SubInspeccion(inspeccion=inspeccion, tipo=tipo)
+        for tipo in tipos
+    ])
+    return inspeccion
 
 # Transiciones válidas por tipo de último movimiento
 _TRANSICIONES_VALIDAS = {
@@ -65,6 +94,7 @@ def crear_movimiento(form_data: dict, usuario) -> Movimiento:
     movimiento = Movimiento.objects.create(
         tipo=tipo,
         sucursal=sucursal,
+        manifiesto=form_data.get("manifiesto"),
         fecha_hora_evento=form_data["fecha_hora_evento"],
         usuario=usuario,
         observaciones=form_data.get("observaciones", ""),
@@ -73,9 +103,11 @@ def crear_movimiento(form_data: dict, usuario) -> Movimiento:
     for unidad in unidades:
         UnidadMovimiento.objects.create(movimiento=movimiento, unidad=unidad)
 
-    # Actualizar sucursal_actual en unidades que quedan en una ubicación
     if tipo in ("ENTRADA", "TALLER_ENTRADA"):
         ids = [u.pk for u in unidades]
         Unidad.objects.filter(pk__in=ids).update(sucursal_actual=sucursal)
+
+    if tipo == "INSPECCION":
+        crear_inspeccion(movimiento)
 
     return movimiento

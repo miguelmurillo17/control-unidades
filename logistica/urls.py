@@ -14,6 +14,8 @@ from .views import (
     manifiestos_list,
     registrar_manifiesto,
     editar_manifiesto,
+    inspeccion_detalle,
+    sub_inspeccion_form,
 )
 
 sucursales_urls = ([
@@ -42,4 +44,6 @@ urlpatterns = [
     path("manifiestos/", include(manifiestos_urls)),
     path("movimientos/registrar/", registrar_movimiento, name="registrar_movimiento"),
     path("movimientos/mis-registros/", mis_registros, name="mis_registros"),
+    path("inspecciones/<int:pk>/", inspeccion_detalle, name="inspeccion_detalle"),
+    path("inspecciones/<int:pk>/sub/<int:sub_pk>/", sub_inspeccion_form, name="sub_inspeccion_form"),
 ]

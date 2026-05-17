@@ -1,0 +1,112 @@
+/* Inspección — barra de progreso y estados de filas */
+
+.insp-estado-badge {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 4px;
+}
+
+/* Progreso */
+.progress-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+    gap: 12px;
+}
+
+.progress-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.progress-count {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.progress-bar-track {
+    height: 8px;
+    background: var(--color-border);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+/* Filas de la tabla */
+.row-completada td {
+    opacity: 0.75;
+}
+
+.cell-obs {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    max-width: 260px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Badges adicionales */
+.badge-red {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* Radio group para resultado */
+.radio-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.radio-option:hover {
+    border-color: var(--color-primary);
+    background: #eff6ff;
+}
+
+.radio-option input[type="radio"] {
+    accent-color: var(--color-primary);
+}
+
+.radio-option:has(input:checked) {
+    border-color: var(--color-primary);
+    background: #eff6ff;
+    font-weight: 500;
+}
+
+/* Link muted en el breadcrumb */
+.link-muted {
+    color: var(--color-text-muted);
+    text-decoration: none;
+}
+.link-muted:hover {
+    color: var(--color-primary);
+}
