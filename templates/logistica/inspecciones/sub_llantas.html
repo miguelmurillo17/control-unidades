@@ -62,8 +62,10 @@
                                         <input type="text"
                                                class="lt-input{% if form.cautin.errors %} input-error{% endif %}"
                                                name="{{ form.cautin.html_name }}"
-                                               value="{{ form.cautin.value|default:'' }}"
-                                               placeholder="—">
+                                               value="{{ form.cautin.value|default:''|upper }}"
+                                               placeholder="—"
+                                               oninput="this.value=this.value.toUpperCase()"
+                                               style="text-transform:uppercase">
                                         {% if form.cautin.errors %}<span class="field-error">{{ form.cautin.errors.0 }}</span>{% endif %}
                                     </td>
                                     <td class="lt-cell">
@@ -98,8 +100,10 @@
                                         <input type="text"
                                                class="lt-input{% if form.origen.errors %} input-error{% endif %}"
                                                name="{{ form.origen.html_name }}"
-                                               value="{{ form.origen.value|default:'' }}"
-                                               placeholder="—">
+                                               value="{{ form.origen.value|default:''|upper }}"
+                                               placeholder="—"
+                                               oninput="this.value=this.value.toUpperCase()"
+                                               style="text-transform:uppercase">
                                         {% if form.origen.errors %}<span class="field-error">{{ form.origen.errors.0 }}</span>{% endif %}
                                     </td>
                                     <td class="lt-cell lt-center">
