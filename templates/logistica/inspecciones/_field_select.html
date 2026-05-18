@@ -1,7 +1,8 @@
 <div class="field">
-    <label for="{{ field.id_for_label }}">{{ field.label }} <span class="field-optional">(opcional)</span></label>
+    <label for="{{ field.id_for_label }}">{{ field.label }}{% if not field.field.required %} <span class="field-optional">(opcional)</span>{% endif %}</label>
     <select id="{{ field.id_for_label }}" name="{{ field.html_name }}"
-            class="{% if field.errors %}input-error{% endif %}">
+            class="{% if field.errors %}input-error{% endif %}"
+            {% if field.field.required %}data-req{% endif %}>
         <option value="">— Selecciona —</option>
         {% for obj in field.field.queryset %}
         <option value="{{ obj.pk }}" {% if field.value|stringformat:"s" == obj.pk|stringformat:"s" %}selected{% endif %}>

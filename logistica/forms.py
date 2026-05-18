@@ -146,8 +146,8 @@ class ManifiestoForm(forms.Form):
 class SubInspeccionForm(forms.ModelForm):
     class Meta:
         model   = SubInspeccion
-        fields  = ["comentarios"]
-        widgets = {"comentarios": forms.Textarea(attrs={"rows": 3})}
+        fields  = ["comentarios", "completada"]
+        widgets = {"comentarios": forms.Textarea(attrs={"rows": 4})}
 
 
 class DetalleGeneralForm(forms.ModelForm):
@@ -156,9 +156,26 @@ class DetalleGeneralForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["marca_remolque"].queryset   = Marca.objects.filter(aplica_remolque=True,   activo=True)
         self.fields["marca_contenedor"].queryset = Marca.objects.filter(aplica_contenedor=True, activo=True)
-        año_max = datetime.date.today().year + 1
+        self._año_max = datetime.date.today().year + 1
         for name in ("anio_remolque", "anio_contenedor"):
-            self.fields[name].widget = forms.NumberInput(attrs={"min": 1950, "max": año_max})
+            self.fields[name].widget = forms.NumberInput(attrs={"min": 1950, "max": self._año_max})
+        # All fields optional at save time so partial saves work; marca fields are the exception.
+        for f in self.fields.values():
+            f.required = False
+        self.fields["marca_remolque"].required   = True
+        self.fields["marca_contenedor"].required = True
+
+    def _validar_anio(self, field_name):
+        valor = self.cleaned_data.get(field_name)
+        if valor is not None and valor > self._año_max:
+            raise forms.ValidationError(f"El año no puede ser mayor a {self._año_max}.")
+        return valor
+
+    def clean_anio_remolque(self):
+        return self._validar_anio("anio_remolque")
+
+    def clean_anio_contenedor(self):
+        return self._validar_anio("anio_contenedor")
 
     class Meta:
         model  = DetalleGeneral
@@ -170,7 +187,16 @@ class DetalleGeneralForm(forms.ModelForm):
         ]
 
 
+def _make_optional(form_instance):
+    for f in form_instance.fields.values():
+        f.required = False
+
+
 class DetalleCajaForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _make_optional(self)
+
     class Meta:
         model  = DetalleCaja
         fields = [
@@ -181,6 +207,10 @@ class DetalleCajaForm(forms.ModelForm):
 
 
 class DetalleCajaVaciaForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _make_optional(self)
+
     class Meta:
         model  = DetalleCajaVacia
         fields = [
@@ -192,6 +222,10 @@ class DetalleCajaVaciaForm(forms.ModelForm):
 
 
 class DetalleDiecinuevePuntosForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _make_optional(self)
+
     class Meta:
         model  = DetalleDiecinuevePuntos
         fields = [
@@ -205,18 +239,30 @@ class DetalleDiecinuevePuntosForm(forms.ModelForm):
 
 
 class DetalleCincoPuntosForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _make_optional(self)
+
     class Meta:
         model  = DetalleCincoPuntos
         fields = ["ver_sellos", "verificar_sello", "tirar_sello", "torcer_sello", "verificar_bisagra"]
 
 
 class DetalleCaninaForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _make_optional(self)
+
     class Meta:
         model  = DetalleCanina
         fields = ["aprobado"]
 
 
 class DetalleMedidasRemolqueForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _make_optional(self)
+
     class Meta:
         model   = DetalleMedidasRemolque
         fields  = ["largo", "ancho", "alto"]

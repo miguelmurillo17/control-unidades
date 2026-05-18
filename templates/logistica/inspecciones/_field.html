@@ -7,6 +7,6 @@
            {% if field.field.widget.attrs.min is not None %}min="{{ field.field.widget.attrs.min }}"{% endif %}
            {% if field.field.widget.attrs.max is not None %}max="{{ field.field.widget.attrs.max }}"{% endif %}
            class="{% if field.errors %}input-error{% endif %}"
-           required>
+           data-req>
     {% if field.errors %}<span class="field-error">{{ field.errors.0 }}</span>{% endif %}
 </div>

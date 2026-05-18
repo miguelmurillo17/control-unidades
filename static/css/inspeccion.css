@@ -207,6 +207,180 @@
     font-weight: 500;
 }
 
+/* ── Footer sub-inspección (observaciones + fotos + completada) ──────────── */
+
+.footer-sub-section {
+    margin-top: 8px;
+}
+
+.footer-sub-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+}
+
+@media (max-width: 640px) {
+    .footer-sub-cols { grid-template-columns: 1fr; }
+}
+
+.footer-sub-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.footer-sub-comentarios {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.footer-sub-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.875rem;
+    font-family: inherit;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: #fafafa;
+    color: var(--color-text);
+    resize: vertical;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    box-sizing: border-box;
+}
+
+.footer-sub-textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+
+.footer-sub-textarea.input-error {
+    border-color: var(--color-error);
+}
+
+.footer-sub-fotos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.foto-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 0;
+}
+
+.foto-thumb-link { display: block; }
+
+.foto-thumb {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    transition: opacity .15s;
+}
+
+.foto-thumb:hover { opacity: 0.85; }
+
+.foto-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-primary);
+    border: 1px dashed var(--color-primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+    width: fit-content;
+}
+
+.foto-add-btn:hover {
+    background: #eff6ff;
+}
+
+/* ── Checkbox completada ─────────────────────────────────────────────────── */
+
+.completada-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 18px 24px;
+    margin-top: 12px;
+}
+
+.completada-label {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+}
+
+.completada-check-wrap {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.completada-check-wrap input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+
+.completada-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.completada-text strong {
+    font-size: 0.9375rem;
+    color: var(--color-text);
+}
+
+.completada-text span {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+.completada-label:has(input:checked) ~ * { /* sibling */ }
+
+.completada-card:has(input:checked) {
+    border-color: var(--color-primary);
+    background: #eff6ff;
+}
+
+@keyframes completada-shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+}
+
+.completada-blocked {
+    border-color: var(--color-error, #dc2626);
+    animation: completada-shake 0.5s ease;
+}
+
 /* ── Tabla de llantas ────────────────────────────────────────────────────── */
 
 .llantas-table {

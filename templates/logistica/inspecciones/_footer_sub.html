@@ -1,0 +1,157 @@
+{% load static %}
+{# Partial: observaciones + fotos + completada. Requiere: sub_form, fotos, max_fotos, puede_agregar_foto #}
+
+<!-- Observaciones y fotografías -->
+<div class="form-section footer-sub-section">
+    <div class="footer-sub-cols">
+
+        <!-- Observaciones -->
+        <div class="footer-sub-comentarios">
+            <label for="{{ sub_form.comentarios.id_for_label }}" class="footer-sub-label">
+                {{ sub_form.comentarios.label }}
+                <span class="field-optional">(opcional)</span>
+            </label>
+            <textarea id="{{ sub_form.comentarios.id_for_label }}"
+                      name="{{ sub_form.comentarios.html_name }}"
+                      class="footer-sub-textarea{% if sub_form.comentarios.errors %} input-error{% endif %}"
+                      rows="5">{{ sub_form.comentarios.value|default:'' }}</textarea>
+            {% if sub_form.comentarios.errors %}
+            <span class="field-error">{{ sub_form.comentarios.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Fotografías -->
+        <div class="footer-sub-fotos">
+            <span class="footer-sub-label">
+                Fotografías
+                <span class="field-optional">({{ fotos|length }}/{{ max_fotos }})</span>
+            </span>
+
+            <div class="foto-grid" id="foto-grid">
+                {% for foto in fotos %}
+                <a href="{{ foto.imagen.url }}" target="_blank" class="foto-thumb-link">
+                    <img src="{{ foto.imagen.url }}" class="foto-thumb" alt="Foto {{ forloop.counter }}">
+                </a>
+                {% endfor %}
+            </div>
+
+            {% if puede_agregar_foto %}
+            <label class="foto-add-btn" for="foto-input">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                </svg>
+                Agregar foto
+            </label>
+            <input type="file" id="foto-input" name="fotos" multiple
+                   accept="image/*" capture="environment" style="display:none">
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- Completada -->
+<div class="completada-card">
+    <label class="completada-label" for="{{ sub_form.completada.id_for_label }}">
+        <div class="completada-check-wrap">
+            <input type="checkbox"
+                   id="{{ sub_form.completada.id_for_label }}"
+                   name="{{ sub_form.completada.html_name }}"
+                   {% if sub_form.completada.value %}checked{% endif %}>
+        </div>
+        <div class="completada-text">
+            <strong>Marcar como completada</strong>
+            <span>Confirma que todos los puntos han sido revisados</span>
+        </div>
+    </label>
+    {% if sub_form.completada.errors %}
+    <span class="field-error" style="margin-top:6px;display:block">{{ sub_form.completada.errors.0 }}</span>
+    {% endif %}
+</div>
+
+<script>
+(function () {
+    // Photo preview
+    var input = document.getElementById('foto-input');
+    var grid  = document.getElementById('foto-grid');
+    if (input && grid) {
+        input.addEventListener('change', function () {
+            var existing = grid.querySelectorAll('.foto-preview-new').length;
+            var maxSlots = {{ max_fotos }} - {{ fotos|length }} - existing;
+            Array.from(input.files).slice(0, maxSlots).forEach(function (file) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var a    = document.createElement('a');
+                    a.href   = e.target.result;
+                    a.target = '_blank';
+                    a.className = 'foto-thumb-link foto-preview-new';
+                    var img  = document.createElement('img');
+                    img.src  = e.target.result;
+                    img.className = 'foto-thumb';
+                    img.alt  = 'Nueva foto';
+                    a.appendChild(img);
+                    grid.appendChild(a);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    }
+
+    // Block checking completada when required fields are empty; auto-uncheck if they're later cleared.
+    (function () {
+        var form = document.querySelector('form');
+        if (!form) return;
+        var completadaEl = form.querySelector('input[type="checkbox"][name$="completada"]');
+        if (!completadaEl) return;
+
+        function anyReqEmpty() {
+            // Text / number / select inputs
+            var fields = form.querySelectorAll('[data-req]');
+            for (var i = 0; i < fields.length; i++) {
+                if (!fields[i].value.trim()) return true;
+            }
+            // Radio groups (checklist rows and single radio questions)
+            var radioGroups = form.querySelectorAll('[data-req-radio]');
+            var checked = {};
+            form.querySelectorAll('input[type="radio"]:checked').forEach(function (r) {
+                checked[r.name] = true;
+            });
+            for (var j = 0; j < radioGroups.length; j++) {
+                var name = radioGroups[j].dataset.reqRadio;
+                if (!checked[name]) return true;
+            }
+            return false;
+        }
+
+        // Prevent checking completada when required fields are missing.
+        completadaEl.addEventListener('change', function () {
+            if (completadaEl.checked && anyReqEmpty()) {
+                completadaEl.checked = false;
+                var card = completadaEl.closest('.completada-card');
+                if (card) {
+                    card.classList.add('completada-blocked');
+                    setTimeout(function () { card.classList.remove('completada-blocked'); }, 600);
+                }
+            }
+        });
+
+        // Auto-uncheck when a required field is cleared while completada is checked.
+        function onReqChange() {
+            if (completadaEl.checked && anyReqEmpty()) {
+                completadaEl.checked = false;
+            }
+        }
+
+        form.querySelectorAll('[data-req]').forEach(function (el) {
+            el.addEventListener('change', onReqChange);
+            el.addEventListener('input',  onReqChange);
+        });
+
+        form.querySelectorAll('input[type="radio"]').forEach(function (el) {
+            el.addEventListener('change', onReqChange);
+        });
+    })();
+})();
+</script>

@@ -144,6 +144,7 @@ class SubInspeccion(models.Model):
     inspeccion         = models.ForeignKey(Inspeccion, on_delete=models.CASCADE, related_name="sub_inspecciones")
     tipo               = models.CharField(max_length=30, choices=TIPO_SUB_INSPECCION)
     comentarios        = models.TextField(blank=True)
+    completada          = models.BooleanField(default=False)
     fecha_hora_inicio  = models.DateTimeField(null=True, blank=True)
     fecha_hora_fin     = models.DateTimeField(null=True, blank=True)
 

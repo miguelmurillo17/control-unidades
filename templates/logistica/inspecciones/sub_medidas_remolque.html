@@ -26,7 +26,7 @@
         </header>
 
         <section class="page-body">
-            <form method="post" novalidate>
+            <form method="post" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
 
                 {% if sub_form.non_field_errors or detalle_form.non_field_errors %}
@@ -50,7 +50,8 @@
                                        name="{{ detalle_form.largo.html_name }}"
                                        step="0.01" min="0"
                                        placeholder="m"
-                                       value="{{ detalle_form.largo.value|default:'' }}">
+                                       value="{{ detalle_form.largo.value|default:'' }}"
+                                       data-req>
                                 {% if detalle_form.largo.errors %}<span class="field-error">{{ detalle_form.largo.errors.0 }}</span>{% endif %}
                             </div>
 
@@ -63,7 +64,8 @@
                                        name="{{ detalle_form.ancho.html_name }}"
                                        step="0.01" min="0"
                                        placeholder="m"
-                                       value="{{ detalle_form.ancho.value|default:'' }}">
+                                       value="{{ detalle_form.ancho.value|default:'' }}"
+                                       data-req>
                                 {% if detalle_form.ancho.errors %}<span class="field-error">{{ detalle_form.ancho.errors.0 }}</span>{% endif %}
                             </div>
 
@@ -76,29 +78,19 @@
                                        name="{{ detalle_form.alto.html_name }}"
                                        step="0.01" min="0"
                                        placeholder="m"
-                                       value="{{ detalle_form.alto.value|default:'' }}">
+                                       value="{{ detalle_form.alto.value|default:'' }}"
+                                       data-req>
                                 {% if detalle_form.alto.errors %}<span class="field-error">{{ detalle_form.alto.errors.0 }}</span>{% endif %}
                             </div>
 
                         </div>
                     </div>
                 </div>
-
-                <!-- Observaciones -->
-                <div class="form-section">
-                    <div class="form-card form-card-wide">
-                        <div class="form-grid">
-                            <div class="field field-wide">
-                                <label for="{{ sub_form.comentarios.id_for_label }}">
-                                    {{ sub_form.comentarios.label }} <span class="field-optional">(opcional)</span>
-                                </label>
-                                <textarea id="{{ sub_form.comentarios.id_for_label }}"
-                                          name="{{ sub_form.comentarios.html_name }}"
-                                          rows="3">{{ sub_form.comentarios.value|default:'' }}</textarea>
-                            </div>
                         </div>
                     </div>
                 </div>
+
+                {% include "logistica/inspecciones/_footer_sub.html" %}
 
                 <div class="form-actions">
                     <a href="{% url 'inspeccion_detalle' inspeccion.pk %}" class="btn-secondary-sm">Cancelar</a>

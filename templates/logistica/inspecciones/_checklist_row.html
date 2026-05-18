@@ -1,4 +1,4 @@
-<tr>
+<tr data-req-radio="{{ field.html_name }}">
     <td class="checklist-label">{{ field.label }}</td>
     {% for val, lbl in field.field.choices %}
     {% if val %}
@@ -7,8 +7,7 @@
             <input type="radio"
                    name="{{ field.html_name }}"
                    value="{{ val }}"
-                   {% if field.value == val %}checked{% endif %}
-                   required>
+                   {% if field.value == val %}checked{% endif %}>
             <span>{{ lbl }}</span>
         </label>
     </td>

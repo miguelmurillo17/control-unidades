@@ -22,7 +22,7 @@
 
         <section class="page-body">
             <div class="form-card">
-                <form method="post" novalidate>
+                <form method="post" enctype="multipart/form-data" novalidate>
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}
@@ -58,7 +58,9 @@
 
                     </div>
 
-                    <div class="form-actions">
+                    {% include "logistica/inspecciones/_footer_sub.html" %}
+
+                <div class="form-actions">
                         <a href="{% url 'inspeccion_detalle' inspeccion.pk %}" class="btn-secondary-sm">Cancelar</a>
                         <button type="submit" class="btn-primary">Guardar</button>
                     </div>

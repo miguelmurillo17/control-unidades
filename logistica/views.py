@@ -17,7 +17,7 @@ from .forms import (
 from .models import (
     DetalleGeneral, DetalleCaja, DetalleCajaVacia, DetalleCincoPuntos,
     DetalleDiecinuevePuntos, DetalleCanina, DetalleMedidasRemolque,
-    RegistroLlanta, PosicionLlanta,
+    RegistroLlanta, PosicionLlanta, FotoSubInspeccion, ConfiguracionInspeccion,
     Inspeccion, Manifiesto, Movimiento, SubInspeccion, Sucursal, Unidad, UnidadManifiesto,
 )
 from .services import detectar_inconsistencias, crear_movimiento
@@ -170,7 +170,7 @@ def mis_inspecciones(request):
         .select_related("movimiento__manifiesto__sucursal_origen", "movimiento__manifiesto__sucursal_destino")
         .annotate(
             total_subs=Count("sub_inspecciones"),
-            completadas_subs=Count("sub_inspecciones", filter=Q(sub_inspecciones__fecha_hora_fin__isnull=False)),
+            completadas_subs=Count("sub_inspecciones", filter=Q(sub_inspecciones__completada=True)),
         )
         .order_by("-created_at")
     )
@@ -194,7 +194,7 @@ def inspeccion_detalle(request, pk):
         pk=pk,
     )
     sub_inspecciones = inspeccion.sub_inspecciones.all()
-    completadas = sum(1 for s in sub_inspecciones if s.fecha_hora_fin)
+    completadas = sum(1 for s in sub_inspecciones if s.completada)
     total       = len(sub_inspecciones)
 
     return render(request, "logistica/inspecciones/detalle.html", {
@@ -206,9 +206,58 @@ def inspeccion_detalle(request, pk):
     })
 
 
+# Tipos con checklist SI/NO donde "algún NO" exige comentarios ≥ 10 chars
+_CHECKLIST_TIPOS = {"CAJA", "CAJA_VACIA", "CINCO_PUNTOS", "DIECINUEVE_PUNTOS", "CANINA"}
+
+
+def _get_fotos_ctx(sub_inspeccion):
+    max_fotos = ConfiguracionInspeccion.get().max_fotos
+    fotos     = list(sub_inspeccion.fotos.all())
+    return {"fotos": fotos, "max_fotos": max_fotos, "puede_agregar_foto": len(fotos) < max_fotos}
+
+
+def _save_fotos(request, sub_inspeccion):
+    max_fotos = ConfiguracionInspeccion.get().max_fotos
+    existing  = sub_inspeccion.fotos.count()
+    slots     = max(0, max_fotos - existing)
+    for f in request.FILES.getlist("fotos")[:slots]:
+        FotoSubInspeccion.objects.create(sub_inspeccion=sub_inspeccion, imagen=f)
+
+
+def _apply_completada(sub):
+    from django.utils import timezone
+    if sub.completada:
+        if not sub.fecha_hora_fin:
+            sub.fecha_hora_fin = timezone.now()
+    else:
+        sub.fecha_hora_fin = None
+
+
+def _validate_checklist(sub_form, detalle_form, tipo):
+    """Returns True if validation passes; otherwise adds errors to sub_form and returns False."""
+    if tipo not in _CHECKLIST_TIPOS:
+        return True
+    cleaned    = detalle_form.cleaned_data
+    completada = sub_form.cleaned_data.get("completada", False)
+    # Si se marca completada, todos los puntos deben estar respondidos
+    if completada:
+        vacios = [k for k, v in cleaned.items() if isinstance(v, str) and v == ""]
+        if vacios:
+            sub_form.add_error(None, "Completa todos los puntos de revisión antes de marcar como completada.")
+            return False
+    # Si algún punto es "NO", comentarios es obligatorio (mín. 10 chars)
+    tiene_mal = any(v == "NO" for v in cleaned.values() if isinstance(v, str))
+    if tiene_mal:
+        comentarios = (sub_form.cleaned_data.get("comentarios") or "").strip()
+        if len(comentarios) < 10:
+            sub_form.add_error("comentarios", "Requerido (mín. 10 caracteres) cuando hay puntos marcados como Mal.")
+            return False
+    return True
+
+
 def _marcar_completada_si_aplica(inspeccion):
     todas = inspeccion.sub_inspecciones.all()
-    if all(s.fecha_hora_fin for s in todas):
+    if all(s.completada for s in todas):
         inspeccion.estado = "COMPLETADA"
         inspeccion.save(update_fields=["estado"])
 
@@ -250,9 +299,9 @@ def sub_inspeccion_form(request, pk, sub_pk):
         form = SubInspeccionForm(request.POST, instance=sub_inspeccion)
         if form.is_valid():
             sub = form.save(commit=False)
-            from django.utils import timezone
-            sub.fecha_hora_fin = timezone.now()
+            _apply_completada(sub)
             sub.save()
+            _save_fotos(request, sub_inspeccion)
             _marcar_completada_si_aplica(inspeccion)
             return redirect("inspeccion_detalle", pk=inspeccion.pk)
     else:
@@ -262,6 +311,7 @@ def sub_inspeccion_form(request, pk, sub_pk):
         "inspeccion":     inspeccion,
         "sub_inspeccion": sub_inspeccion,
         "form":           form,
+        **_get_fotos_ctx(sub_inspeccion),
     })
 
 
@@ -272,15 +322,32 @@ def _sub_form_general(request, inspeccion, sub_inspeccion):
         sub_form    = SubInspeccionForm(request.POST, instance=sub_inspeccion)
         detalle_form = DetalleGeneralForm(request.POST, instance=detalle)
         if sub_form.is_valid() and detalle_form.is_valid():
-            sub = sub_form.save(commit=False)
-            from django.utils import timezone
-            sub.fecha_hora_fin = timezone.now()
-            sub.save()
-            det = detalle_form.save(commit=False)
-            det.sub_inspeccion = sub_inspeccion
-            det.save()
-            _marcar_completada_si_aplica(inspeccion)
-            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+            ok = _validate_checklist(sub_form, detalle_form, sub_inspeccion.tipo)
+            if ok and sub_form.cleaned_data.get("completada"):
+                cd = detalle_form.cleaned_data
+                _GENERAL_REQUIRED = [
+                    "id_caja", "linea", "placas", "estado", "chofer",
+                    "id_tractor", "fianza", "numero_sello",
+                    "anio_remolque", "vin_remolque", "marca_remolque",
+                    "anio_contenedor", "vin_contenedor", "marca_contenedor",
+                ]
+                vacios = [k for k in _GENERAL_REQUIRED if not cd.get(k)]
+                if vacios:
+                    sub_form.add_error(
+                        "completada",
+                        "Completa todos los campos obligatorios antes de marcar como completada.",
+                    )
+                    ok = False
+            if ok:
+                sub = sub_form.save(commit=False)
+                _apply_completada(sub)
+                sub.save()
+                det = detalle_form.save(commit=False)
+                det.sub_inspeccion = sub_inspeccion
+                det.save()
+                _save_fotos(request, sub_inspeccion)
+                _marcar_completada_si_aplica(inspeccion)
+                return redirect("inspeccion_detalle", pk=inspeccion.pk)
     else:
         sub_form     = SubInspeccionForm(instance=sub_inspeccion)
         detalle_form = DetalleGeneralForm(instance=detalle)
@@ -290,6 +357,7 @@ def _sub_form_general(request, inspeccion, sub_inspeccion):
         "sub_inspeccion": sub_inspeccion,
         "sub_form":       sub_form,
         "detalle_form":   detalle_form,
+        **_get_fotos_ctx(sub_inspeccion),
     })
 
 
@@ -300,15 +368,16 @@ def _sub_form_caja(request, inspeccion, sub_inspeccion):
         sub_form     = SubInspeccionForm(request.POST, instance=sub_inspeccion)
         detalle_form = DetalleCajaForm(request.POST, instance=detalle)
         if sub_form.is_valid() and detalle_form.is_valid():
-            sub = sub_form.save(commit=False)
-            from django.utils import timezone
-            sub.fecha_hora_fin = timezone.now()
-            sub.save()
-            det = detalle_form.save(commit=False)
-            det.sub_inspeccion = sub_inspeccion
-            det.save()
-            _marcar_completada_si_aplica(inspeccion)
-            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+            if _validate_checklist(sub_form, detalle_form, sub_inspeccion.tipo):
+                sub = sub_form.save(commit=False)
+                _apply_completada(sub)
+                sub.save()
+                det = detalle_form.save(commit=False)
+                det.sub_inspeccion = sub_inspeccion
+                det.save()
+                _save_fotos(request, sub_inspeccion)
+                _marcar_completada_si_aplica(inspeccion)
+                return redirect("inspeccion_detalle", pk=inspeccion.pk)
     else:
         sub_form     = SubInspeccionForm(instance=sub_inspeccion)
         detalle_form = DetalleCajaForm(instance=detalle)
@@ -318,6 +387,7 @@ def _sub_form_caja(request, inspeccion, sub_inspeccion):
         "sub_inspeccion": sub_inspeccion,
         "sub_form":       sub_form,
         "detalle_form":   detalle_form,
+        **_get_fotos_ctx(sub_inspeccion),
     })
 
 
@@ -328,15 +398,16 @@ def _sub_form_caja_vacia(request, inspeccion, sub_inspeccion):
         sub_form     = SubInspeccionForm(request.POST, instance=sub_inspeccion)
         detalle_form = DetalleCajaVaciaForm(request.POST, instance=detalle)
         if sub_form.is_valid() and detalle_form.is_valid():
-            sub = sub_form.save(commit=False)
-            from django.utils import timezone
-            sub.fecha_hora_fin = timezone.now()
-            sub.save()
-            det = detalle_form.save(commit=False)
-            det.sub_inspeccion = sub_inspeccion
-            det.save()
-            _marcar_completada_si_aplica(inspeccion)
-            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+            if _validate_checklist(sub_form, detalle_form, sub_inspeccion.tipo):
+                sub = sub_form.save(commit=False)
+                _apply_completada(sub)
+                sub.save()
+                det = detalle_form.save(commit=False)
+                det.sub_inspeccion = sub_inspeccion
+                det.save()
+                _save_fotos(request, sub_inspeccion)
+                _marcar_completada_si_aplica(inspeccion)
+                return redirect("inspeccion_detalle", pk=inspeccion.pk)
     else:
         sub_form     = SubInspeccionForm(instance=sub_inspeccion)
         detalle_form = DetalleCajaVaciaForm(instance=detalle)
@@ -346,6 +417,7 @@ def _sub_form_caja_vacia(request, inspeccion, sub_inspeccion):
         "sub_inspeccion": sub_inspeccion,
         "sub_form":       sub_form,
         "detalle_form":   detalle_form,
+        **_get_fotos_ctx(sub_inspeccion),
     })
 
 
@@ -369,10 +441,10 @@ def _sub_form_llantas(request, inspeccion, sub_inspeccion):
         formset  = _LlantaFormSet(request.POST, instance=sub_inspeccion, queryset=qs)
         if sub_form.is_valid() and formset.is_valid():
             sub = sub_form.save(commit=False)
-            from django.utils import timezone
-            sub.fecha_hora_fin = timezone.now()
+            _apply_completada(sub)
             sub.save()
             formset.save()
+            _save_fotos(request, sub_inspeccion)
             _marcar_completada_si_aplica(inspeccion)
             return redirect("inspeccion_detalle", pk=inspeccion.pk)
     else:
@@ -384,6 +456,7 @@ def _sub_form_llantas(request, inspeccion, sub_inspeccion):
         "sub_inspeccion": sub_inspeccion,
         "sub_form":       sub_form,
         "formset":        formset,
+        **_get_fotos_ctx(sub_inspeccion),
     })
 
 
@@ -394,15 +467,16 @@ def _sub_form_diecinueve_puntos(request, inspeccion, sub_inspeccion):
         sub_form     = SubInspeccionForm(request.POST, instance=sub_inspeccion)
         detalle_form = DetalleDiecinuevePuntosForm(request.POST, instance=detalle)
         if sub_form.is_valid() and detalle_form.is_valid():
-            sub = sub_form.save(commit=False)
-            from django.utils import timezone
-            sub.fecha_hora_fin = timezone.now()
-            sub.save()
-            det = detalle_form.save(commit=False)
-            det.sub_inspeccion = sub_inspeccion
-            det.save()
-            _marcar_completada_si_aplica(inspeccion)
-            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+            if _validate_checklist(sub_form, detalle_form, sub_inspeccion.tipo):
+                sub = sub_form.save(commit=False)
+                _apply_completada(sub)
+                sub.save()
+                det = detalle_form.save(commit=False)
+                det.sub_inspeccion = sub_inspeccion
+                det.save()
+                _save_fotos(request, sub_inspeccion)
+                _marcar_completada_si_aplica(inspeccion)
+                return redirect("inspeccion_detalle", pk=inspeccion.pk)
     else:
         sub_form     = SubInspeccionForm(instance=sub_inspeccion)
         detalle_form = DetalleDiecinuevePuntosForm(instance=detalle)
@@ -412,6 +486,7 @@ def _sub_form_diecinueve_puntos(request, inspeccion, sub_inspeccion):
         "sub_inspeccion": sub_inspeccion,
         "sub_form":       sub_form,
         "detalle_form":   detalle_form,
+        **_get_fotos_ctx(sub_inspeccion),
     })
 
 
@@ -422,15 +497,16 @@ def _sub_form_cinco_puntos(request, inspeccion, sub_inspeccion):
         sub_form     = SubInspeccionForm(request.POST, instance=sub_inspeccion)
         detalle_form = DetalleCincoPuntosForm(request.POST, instance=detalle)
         if sub_form.is_valid() and detalle_form.is_valid():
-            sub = sub_form.save(commit=False)
-            from django.utils import timezone
-            sub.fecha_hora_fin = timezone.now()
-            sub.save()
-            det = detalle_form.save(commit=False)
-            det.sub_inspeccion = sub_inspeccion
-            det.save()
-            _marcar_completada_si_aplica(inspeccion)
-            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+            if _validate_checklist(sub_form, detalle_form, sub_inspeccion.tipo):
+                sub = sub_form.save(commit=False)
+                _apply_completada(sub)
+                sub.save()
+                det = detalle_form.save(commit=False)
+                det.sub_inspeccion = sub_inspeccion
+                det.save()
+                _save_fotos(request, sub_inspeccion)
+                _marcar_completada_si_aplica(inspeccion)
+                return redirect("inspeccion_detalle", pk=inspeccion.pk)
     else:
         sub_form     = SubInspeccionForm(instance=sub_inspeccion)
         detalle_form = DetalleCincoPuntosForm(instance=detalle)
@@ -440,6 +516,7 @@ def _sub_form_cinco_puntos(request, inspeccion, sub_inspeccion):
         "sub_inspeccion": sub_inspeccion,
         "sub_form":       sub_form,
         "detalle_form":   detalle_form,
+        **_get_fotos_ctx(sub_inspeccion),
     })
 
 
@@ -450,15 +527,16 @@ def _sub_form_canina(request, inspeccion, sub_inspeccion):
         sub_form     = SubInspeccionForm(request.POST, instance=sub_inspeccion)
         detalle_form = DetalleCaninaForm(request.POST, instance=detalle)
         if sub_form.is_valid() and detalle_form.is_valid():
-            sub = sub_form.save(commit=False)
-            from django.utils import timezone
-            sub.fecha_hora_fin = timezone.now()
-            sub.save()
-            det = detalle_form.save(commit=False)
-            det.sub_inspeccion = sub_inspeccion
-            det.save()
-            _marcar_completada_si_aplica(inspeccion)
-            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+            if _validate_checklist(sub_form, detalle_form, sub_inspeccion.tipo):
+                sub = sub_form.save(commit=False)
+                _apply_completada(sub)
+                sub.save()
+                det = detalle_form.save(commit=False)
+                det.sub_inspeccion = sub_inspeccion
+                det.save()
+                _save_fotos(request, sub_inspeccion)
+                _marcar_completada_si_aplica(inspeccion)
+                return redirect("inspeccion_detalle", pk=inspeccion.pk)
     else:
         sub_form     = SubInspeccionForm(instance=sub_inspeccion)
         detalle_form = DetalleCaninaForm(instance=detalle)
@@ -468,6 +546,7 @@ def _sub_form_canina(request, inspeccion, sub_inspeccion):
         "sub_inspeccion": sub_inspeccion,
         "sub_form":       sub_form,
         "detalle_form":   detalle_form,
+        **_get_fotos_ctx(sub_inspeccion),
     })
 
 
@@ -478,15 +557,25 @@ def _sub_form_medidas_remolque(request, inspeccion, sub_inspeccion):
         sub_form     = SubInspeccionForm(request.POST, instance=sub_inspeccion)
         detalle_form = DetalleMedidasRemolqueForm(request.POST, instance=detalle)
         if sub_form.is_valid() and detalle_form.is_valid():
-            sub = sub_form.save(commit=False)
-            from django.utils import timezone
-            sub.fecha_hora_fin = timezone.now()
-            sub.save()
-            det = detalle_form.save(commit=False)
-            det.sub_inspeccion = sub_inspeccion
-            det.save()
-            _marcar_completada_si_aplica(inspeccion)
-            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+            ok = True
+            if sub_form.cleaned_data.get("completada"):
+                cd = detalle_form.cleaned_data
+                if not cd.get("largo") or not cd.get("ancho") or not cd.get("alto"):
+                    sub_form.add_error(
+                        "completada",
+                        "Captura largo, ancho y alto antes de marcar como completada.",
+                    )
+                    ok = False
+            if ok:
+                sub = sub_form.save(commit=False)
+                _apply_completada(sub)
+                sub.save()
+                det = detalle_form.save(commit=False)
+                det.sub_inspeccion = sub_inspeccion
+                det.save()
+                _save_fotos(request, sub_inspeccion)
+                _marcar_completada_si_aplica(inspeccion)
+                return redirect("inspeccion_detalle", pk=inspeccion.pk)
     else:
         sub_form     = SubInspeccionForm(instance=sub_inspeccion)
         detalle_form = DetalleMedidasRemolqueForm(instance=detalle)
@@ -496,6 +585,7 @@ def _sub_form_medidas_remolque(request, inspeccion, sub_inspeccion):
         "sub_inspeccion": sub_inspeccion,
         "sub_form":       sub_form,
         "detalle_form":   detalle_form,
+        **_get_fotos_ctx(sub_inspeccion),
     })
 
 
