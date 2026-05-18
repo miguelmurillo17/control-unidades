@@ -151,6 +151,13 @@ class SubInspeccionForm(forms.ModelForm):
 
 
 class DetalleGeneralForm(forms.ModelForm):
+    required_for_completada = [
+        "id_caja", "linea", "placas", "estado", "chofer",
+        "id_tractor", "fianza", "numero_sello",
+        "anio_remolque", "vin_remolque", "marca_remolque",
+        "anio_contenedor", "vin_contenedor", "marca_contenedor",
+    ]
+
     def __init__(self, *args, **kwargs):
         import datetime
         super().__init__(*args, **kwargs)
@@ -159,9 +166,8 @@ class DetalleGeneralForm(forms.ModelForm):
         self._año_max = datetime.date.today().year + 1
         for name in ("anio_remolque", "anio_contenedor"):
             self.fields[name].widget = forms.NumberInput(attrs={"min": 1950, "max": self._año_max})
-        # All fields optional at save time so partial saves work; marca fields are the exception.
-        for f in self.fields.values():
-            f.required = False
+        _make_optional(self)
+        # marca_remolque/contenedor muestran label sin "(opcional)"
         self.fields["marca_remolque"].required   = True
         self.fields["marca_contenedor"].required = True
 
@@ -259,6 +265,8 @@ class DetalleCaninaForm(forms.ModelForm):
 
 
 class DetalleMedidasRemolqueForm(forms.ModelForm):
+    required_for_completada = ["largo", "ancho", "alto"]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _make_optional(self)

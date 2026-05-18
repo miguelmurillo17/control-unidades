@@ -96,15 +96,6 @@
     const añoMax = new Date().getFullYear() + 1;
     const añoMin = 1950;
 
-    document.querySelectorAll('input[type="text"]').forEach(function (input) {
-        input.style.textTransform = 'uppercase';
-        input.addEventListener('input', function () {
-            var pos = input.selectionStart;
-            input.value = input.value.toUpperCase();
-            input.setSelectionRange(pos, pos);
-        });
-    });
-
     document.querySelectorAll('input[type="number"]').forEach(function (input) {
         input.addEventListener('keydown', function (e) {
             const allowed = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'];

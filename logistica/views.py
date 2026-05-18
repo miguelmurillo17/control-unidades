@@ -233,6 +233,21 @@ def _apply_completada(sub):
         sub.fecha_hora_fin = None
 
 
+def _validate_completada(sub_form, detalle_form):
+    """Blocks saving completada=True when required_for_completada fields are empty.
+    For checklist types this is handled by _validate_checklist instead."""
+    if not sub_form.cleaned_data.get("completada"):
+        return True
+    campos = getattr(detalle_form, "required_for_completada", None)
+    if campos is None:
+        return True
+    vacios = [k for k in campos if not detalle_form.cleaned_data.get(k)]
+    if vacios:
+        sub_form.add_error("completada", "Completa todos los campos obligatorios antes de marcar como completada.")
+        return False
+    return True
+
+
 def _validate_checklist(sub_form, detalle_form, tipo):
     """Returns True if validation passes; otherwise adds errors to sub_form and returns False."""
     if tipo not in _CHECKLIST_TIPOS:
@@ -322,22 +337,7 @@ def _sub_form_general(request, inspeccion, sub_inspeccion):
         sub_form    = SubInspeccionForm(request.POST, instance=sub_inspeccion)
         detalle_form = DetalleGeneralForm(request.POST, instance=detalle)
         if sub_form.is_valid() and detalle_form.is_valid():
-            ok = _validate_checklist(sub_form, detalle_form, sub_inspeccion.tipo)
-            if ok and sub_form.cleaned_data.get("completada"):
-                cd = detalle_form.cleaned_data
-                _GENERAL_REQUIRED = [
-                    "id_caja", "linea", "placas", "estado", "chofer",
-                    "id_tractor", "fianza", "numero_sello",
-                    "anio_remolque", "vin_remolque", "marca_remolque",
-                    "anio_contenedor", "vin_contenedor", "marca_contenedor",
-                ]
-                vacios = [k for k in _GENERAL_REQUIRED if not cd.get(k)]
-                if vacios:
-                    sub_form.add_error(
-                        "completada",
-                        "Completa todos los campos obligatorios antes de marcar como completada.",
-                    )
-                    ok = False
+            ok = _validate_completada(sub_form, detalle_form)
             if ok:
                 sub = sub_form.save(commit=False)
                 _apply_completada(sub)
@@ -557,15 +557,7 @@ def _sub_form_medidas_remolque(request, inspeccion, sub_inspeccion):
         sub_form     = SubInspeccionForm(request.POST, instance=sub_inspeccion)
         detalle_form = DetalleMedidasRemolqueForm(request.POST, instance=detalle)
         if sub_form.is_valid() and detalle_form.is_valid():
-            ok = True
-            if sub_form.cleaned_data.get("completada"):
-                cd = detalle_form.cleaned_data
-                if not cd.get("largo") or not cd.get("ancho") or not cd.get("alto"):
-                    sub_form.add_error(
-                        "completada",
-                        "Captura largo, ancho y alto antes de marcar como completada.",
-                    )
-                    ok = False
+            ok = _validate_completada(sub_form, detalle_form)
             if ok:
                 sub = sub_form.save(commit=False)
                 _apply_completada(sub)

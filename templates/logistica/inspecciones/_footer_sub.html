@@ -73,6 +73,16 @@
 
 <script>
 (function () {
+    // Uppercase text inputs
+    document.querySelectorAll('form input[type="text"]').forEach(function (el) {
+        el.style.textTransform = 'uppercase';
+        el.addEventListener('input', function () {
+            var pos = el.selectionStart;
+            el.value = el.value.toUpperCase();
+            el.setSelectionRange(pos, pos);
+        });
+    });
+
     // Photo preview
     var input = document.getElementById('foto-input');
     var grid  = document.getElementById('foto-grid');
