@@ -88,7 +88,7 @@ class ConfiguracionInspeccionAdmin(admin.ModelAdmin):
 class SubInspeccionInline(admin.TabularInline):
     model  = SubInspeccion
     extra  = 0
-    fields = ("tipo", "resultado", "fecha_hora_inicio", "fecha_hora_fin")
+    fields = ("tipo", "comentarios", "fecha_hora_inicio", "fecha_hora_fin")
     readonly_fields = ("tipo",)
 
 
@@ -114,6 +114,6 @@ class RegistroLlantaInline(admin.TabularInline):
 
 @admin.register(SubInspeccion)
 class SubInspeccionAdmin(admin.ModelAdmin):
-    list_display  = ("inspeccion", "tipo", "resultado", "fecha_hora_inicio", "fecha_hora_fin")
-    list_filter   = ("tipo", "resultado")
+    list_display  = ("inspeccion", "tipo", "fecha_hora_inicio", "fecha_hora_fin")
+    list_filter   = ("tipo",)
     inlines       = [FotoSubInspeccionInline, RegistroLlantaInline]

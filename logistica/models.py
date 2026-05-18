@@ -141,14 +141,8 @@ class Inspeccion(models.Model):
 
 
 class SubInspeccion(models.Model):
-    RESULTADO_CHOICES = [
-        ("APROBADO",  "Aprobado"),
-        ("RECHAZADO", "Rechazado"),
-        ("NA",        "No aplica"),
-    ]
     inspeccion         = models.ForeignKey(Inspeccion, on_delete=models.CASCADE, related_name="sub_inspecciones")
     tipo               = models.CharField(max_length=30, choices=TIPO_SUB_INSPECCION)
-    resultado          = models.CharField(max_length=20, choices=RESULTADO_CHOICES, blank=True)
     comentarios        = models.TextField(blank=True)
     fecha_hora_inicio  = models.DateTimeField(null=True, blank=True)
     fecha_hora_fin     = models.DateTimeField(null=True, blank=True)
@@ -157,7 +151,7 @@ class SubInspeccion(models.Model):
         unique_together = [("inspeccion", "tipo")]
 
     def __str__(self):
-        return f'{self.get_tipo_display()} — {self.get_resultado_display() or "sin resultado"}'
+        return f'{self.get_tipo_display()} — {"completada" if self.fecha_hora_fin else "pendiente"}'
 
 
 # ─── Choices compartidos en detalles de sub-inspección ───────────────────────

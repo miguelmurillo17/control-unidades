@@ -6,8 +6,20 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
 from django.db.models import Count, Q
 
-from .forms import MovimientoForm, ManifiestoForm, SubInspeccionForm, DetalleGeneralForm, DetalleCajaForm, DetalleCajaVaciaForm
-from .models import DetalleGeneral, DetalleCaja, DetalleCajaVacia, Inspeccion, Manifiesto, Movimiento, SubInspeccion, Sucursal, Unidad, UnidadManifiesto
+from django.forms import inlineformset_factory
+
+from .forms import (
+    MovimientoForm, ManifiestoForm, SubInspeccionForm, DetalleGeneralForm,
+    DetalleCajaForm, DetalleCajaVaciaForm, DetalleCincoPuntosForm,
+    DetalleDiecinuevePuntosForm, DetalleCaninaForm, DetalleMedidasRemolqueForm,
+    RegistroLlantaForm,
+)
+from .models import (
+    DetalleGeneral, DetalleCaja, DetalleCajaVacia, DetalleCincoPuntos,
+    DetalleDiecinuevePuntos, DetalleCanina, DetalleMedidasRemolque,
+    RegistroLlanta, PosicionLlanta,
+    Inspeccion, Manifiesto, Movimiento, SubInspeccion, Sucursal, Unidad, UnidadManifiesto,
+)
 from .services import detectar_inconsistencias, crear_movimiento
 
 
@@ -158,7 +170,7 @@ def mis_inspecciones(request):
         .select_related("movimiento__manifiesto__sucursal_origen", "movimiento__manifiesto__sucursal_destino")
         .annotate(
             total_subs=Count("sub_inspecciones"),
-            completadas_subs=Count("sub_inspecciones", filter=Q(sub_inspecciones__resultado__gt="")),
+            completadas_subs=Count("sub_inspecciones", filter=Q(sub_inspecciones__fecha_hora_fin__isnull=False)),
         )
         .order_by("-created_at")
     )
@@ -182,7 +194,7 @@ def inspeccion_detalle(request, pk):
         pk=pk,
     )
     sub_inspecciones = inspeccion.sub_inspecciones.all()
-    completadas = sum(1 for s in sub_inspecciones if s.resultado)
+    completadas = sum(1 for s in sub_inspecciones if s.fecha_hora_fin)
     total       = len(sub_inspecciones)
 
     return render(request, "logistica/inspecciones/detalle.html", {
@@ -196,7 +208,7 @@ def inspeccion_detalle(request, pk):
 
 def _marcar_completada_si_aplica(inspeccion):
     todas = inspeccion.sub_inspecciones.all()
-    if all(s.resultado for s in todas):
+    if all(s.fecha_hora_fin for s in todas):
         inspeccion.estado = "COMPLETADA"
         inspeccion.save(update_fields=["estado"])
 
@@ -222,15 +234,24 @@ def sub_inspeccion_form(request, pk, sub_pk):
         return _sub_form_caja(request, inspeccion, sub_inspeccion)
     if sub_inspeccion.tipo == "CAJA_VACIA":
         return _sub_form_caja_vacia(request, inspeccion, sub_inspeccion)
+    if sub_inspeccion.tipo == "DIECINUEVE_PUNTOS":
+        return _sub_form_diecinueve_puntos(request, inspeccion, sub_inspeccion)
+    if sub_inspeccion.tipo == "LLANTAS":
+        return _sub_form_llantas(request, inspeccion, sub_inspeccion)
+    if sub_inspeccion.tipo == "CINCO_PUNTOS":
+        return _sub_form_cinco_puntos(request, inspeccion, sub_inspeccion)
+    if sub_inspeccion.tipo == "CANINA":
+        return _sub_form_canina(request, inspeccion, sub_inspeccion)
+    if sub_inspeccion.tipo == "MEDIDAS_REMOLQUE":
+        return _sub_form_medidas_remolque(request, inspeccion, sub_inspeccion)
 
     # Formulario genérico para tipos aún no implementados
     if request.method == "POST":
         form = SubInspeccionForm(request.POST, instance=sub_inspeccion)
         if form.is_valid():
             sub = form.save(commit=False)
-            if sub.resultado:
-                from django.utils import timezone
-                sub.fecha_hora_fin = timezone.now()
+            from django.utils import timezone
+            sub.fecha_hora_fin = timezone.now()
             sub.save()
             _marcar_completada_si_aplica(inspeccion)
             return redirect("inspeccion_detalle", pk=inspeccion.pk)
@@ -252,9 +273,8 @@ def _sub_form_general(request, inspeccion, sub_inspeccion):
         detalle_form = DetalleGeneralForm(request.POST, instance=detalle)
         if sub_form.is_valid() and detalle_form.is_valid():
             sub = sub_form.save(commit=False)
-            if sub.resultado:
-                from django.utils import timezone
-                sub.fecha_hora_fin = timezone.now()
+            from django.utils import timezone
+            sub.fecha_hora_fin = timezone.now()
             sub.save()
             det = detalle_form.save(commit=False)
             det.sub_inspeccion = sub_inspeccion
@@ -281,9 +301,8 @@ def _sub_form_caja(request, inspeccion, sub_inspeccion):
         detalle_form = DetalleCajaForm(request.POST, instance=detalle)
         if sub_form.is_valid() and detalle_form.is_valid():
             sub = sub_form.save(commit=False)
-            if sub.resultado:
-                from django.utils import timezone
-                sub.fecha_hora_fin = timezone.now()
+            from django.utils import timezone
+            sub.fecha_hora_fin = timezone.now()
             sub.save()
             det = detalle_form.save(commit=False)
             det.sub_inspeccion = sub_inspeccion
@@ -310,9 +329,8 @@ def _sub_form_caja_vacia(request, inspeccion, sub_inspeccion):
         detalle_form = DetalleCajaVaciaForm(request.POST, instance=detalle)
         if sub_form.is_valid() and detalle_form.is_valid():
             sub = sub_form.save(commit=False)
-            if sub.resultado:
-                from django.utils import timezone
-                sub.fecha_hora_fin = timezone.now()
+            from django.utils import timezone
+            sub.fecha_hora_fin = timezone.now()
             sub.save()
             det = detalle_form.save(commit=False)
             det.sub_inspeccion = sub_inspeccion
@@ -324,6 +342,156 @@ def _sub_form_caja_vacia(request, inspeccion, sub_inspeccion):
         detalle_form = DetalleCajaVaciaForm(instance=detalle)
 
     return render(request, "logistica/inspecciones/sub_caja_vacia.html", {
+        "inspeccion":     inspeccion,
+        "sub_inspeccion": sub_inspeccion,
+        "sub_form":       sub_form,
+        "detalle_form":   detalle_form,
+    })
+
+
+_LlantaFormSet = inlineformset_factory(
+    SubInspeccion, RegistroLlanta,
+    form=RegistroLlantaForm,
+    extra=0,
+    can_delete=False,
+)
+
+
+def _sub_form_llantas(request, inspeccion, sub_inspeccion):
+    # Pre-create one RegistroLlanta per required position (idempotent)
+    for pos in PosicionLlanta.objects.filter(requerir_en_inspeccion=True):
+        RegistroLlanta.objects.get_or_create(sub_inspeccion=sub_inspeccion, posicion=pos)
+
+    qs = RegistroLlanta.objects.filter(sub_inspeccion=sub_inspeccion).order_by("posicion__nombre")
+
+    if request.method == "POST":
+        sub_form = SubInspeccionForm(request.POST, instance=sub_inspeccion)
+        formset  = _LlantaFormSet(request.POST, instance=sub_inspeccion, queryset=qs)
+        if sub_form.is_valid() and formset.is_valid():
+            sub = sub_form.save(commit=False)
+            from django.utils import timezone
+            sub.fecha_hora_fin = timezone.now()
+            sub.save()
+            formset.save()
+            _marcar_completada_si_aplica(inspeccion)
+            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+    else:
+        sub_form = SubInspeccionForm(instance=sub_inspeccion)
+        formset  = _LlantaFormSet(instance=sub_inspeccion, queryset=qs)
+
+    return render(request, "logistica/inspecciones/sub_llantas.html", {
+        "inspeccion":     inspeccion,
+        "sub_inspeccion": sub_inspeccion,
+        "sub_form":       sub_form,
+        "formset":        formset,
+    })
+
+
+def _sub_form_diecinueve_puntos(request, inspeccion, sub_inspeccion):
+    detalle = DetalleDiecinuevePuntos.objects.filter(sub_inspeccion=sub_inspeccion).first()
+
+    if request.method == "POST":
+        sub_form     = SubInspeccionForm(request.POST, instance=sub_inspeccion)
+        detalle_form = DetalleDiecinuevePuntosForm(request.POST, instance=detalle)
+        if sub_form.is_valid() and detalle_form.is_valid():
+            sub = sub_form.save(commit=False)
+            from django.utils import timezone
+            sub.fecha_hora_fin = timezone.now()
+            sub.save()
+            det = detalle_form.save(commit=False)
+            det.sub_inspeccion = sub_inspeccion
+            det.save()
+            _marcar_completada_si_aplica(inspeccion)
+            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+    else:
+        sub_form     = SubInspeccionForm(instance=sub_inspeccion)
+        detalle_form = DetalleDiecinuevePuntosForm(instance=detalle)
+
+    return render(request, "logistica/inspecciones/sub_diecinueve_puntos.html", {
+        "inspeccion":     inspeccion,
+        "sub_inspeccion": sub_inspeccion,
+        "sub_form":       sub_form,
+        "detalle_form":   detalle_form,
+    })
+
+
+def _sub_form_cinco_puntos(request, inspeccion, sub_inspeccion):
+    detalle = DetalleCincoPuntos.objects.filter(sub_inspeccion=sub_inspeccion).first()
+
+    if request.method == "POST":
+        sub_form     = SubInspeccionForm(request.POST, instance=sub_inspeccion)
+        detalle_form = DetalleCincoPuntosForm(request.POST, instance=detalle)
+        if sub_form.is_valid() and detalle_form.is_valid():
+            sub = sub_form.save(commit=False)
+            from django.utils import timezone
+            sub.fecha_hora_fin = timezone.now()
+            sub.save()
+            det = detalle_form.save(commit=False)
+            det.sub_inspeccion = sub_inspeccion
+            det.save()
+            _marcar_completada_si_aplica(inspeccion)
+            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+    else:
+        sub_form     = SubInspeccionForm(instance=sub_inspeccion)
+        detalle_form = DetalleCincoPuntosForm(instance=detalle)
+
+    return render(request, "logistica/inspecciones/sub_cinco_puntos.html", {
+        "inspeccion":     inspeccion,
+        "sub_inspeccion": sub_inspeccion,
+        "sub_form":       sub_form,
+        "detalle_form":   detalle_form,
+    })
+
+
+def _sub_form_canina(request, inspeccion, sub_inspeccion):
+    detalle = DetalleCanina.objects.filter(sub_inspeccion=sub_inspeccion).first()
+
+    if request.method == "POST":
+        sub_form     = SubInspeccionForm(request.POST, instance=sub_inspeccion)
+        detalle_form = DetalleCaninaForm(request.POST, instance=detalle)
+        if sub_form.is_valid() and detalle_form.is_valid():
+            sub = sub_form.save(commit=False)
+            from django.utils import timezone
+            sub.fecha_hora_fin = timezone.now()
+            sub.save()
+            det = detalle_form.save(commit=False)
+            det.sub_inspeccion = sub_inspeccion
+            det.save()
+            _marcar_completada_si_aplica(inspeccion)
+            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+    else:
+        sub_form     = SubInspeccionForm(instance=sub_inspeccion)
+        detalle_form = DetalleCaninaForm(instance=detalle)
+
+    return render(request, "logistica/inspecciones/sub_canina.html", {
+        "inspeccion":     inspeccion,
+        "sub_inspeccion": sub_inspeccion,
+        "sub_form":       sub_form,
+        "detalle_form":   detalle_form,
+    })
+
+
+def _sub_form_medidas_remolque(request, inspeccion, sub_inspeccion):
+    detalle = DetalleMedidasRemolque.objects.filter(sub_inspeccion=sub_inspeccion).first()
+
+    if request.method == "POST":
+        sub_form     = SubInspeccionForm(request.POST, instance=sub_inspeccion)
+        detalle_form = DetalleMedidasRemolqueForm(request.POST, instance=detalle)
+        if sub_form.is_valid() and detalle_form.is_valid():
+            sub = sub_form.save(commit=False)
+            from django.utils import timezone
+            sub.fecha_hora_fin = timezone.now()
+            sub.save()
+            det = detalle_form.save(commit=False)
+            det.sub_inspeccion = sub_inspeccion
+            det.save()
+            _marcar_completada_si_aplica(inspeccion)
+            return redirect("inspeccion_detalle", pk=inspeccion.pk)
+    else:
+        sub_form     = SubInspeccionForm(instance=sub_inspeccion)
+        detalle_form = DetalleMedidasRemolqueForm(instance=detalle)
+
+    return render(request, "logistica/inspecciones/sub_medidas_remolque.html", {
         "inspeccion":     inspeccion,
         "sub_inspeccion": sub_inspeccion,
         "sub_form":       sub_form,

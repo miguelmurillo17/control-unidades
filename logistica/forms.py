@@ -1,7 +1,11 @@
 from django import forms
 from django.utils import timezone
 
-from .models import Unidad, Sucursal, Manifiesto, SubInspeccion, DetalleGeneral, DetalleCaja, DetalleCajaVacia, Marca
+from .models import (
+    Unidad, Sucursal, Manifiesto, SubInspeccion, DetalleGeneral,
+    DetalleCaja, DetalleCajaVacia, DetalleCincoPuntos, DetalleDiecinuevePuntos,
+    DetalleCanina, DetalleMedidasRemolque, RegistroLlanta, Marca, MedidaLlanta,
+)
 
 def _manifiestos_activos():
     return (
@@ -142,7 +146,7 @@ class ManifiestoForm(forms.Form):
 class SubInspeccionForm(forms.ModelForm):
     class Meta:
         model   = SubInspeccion
-        fields  = ["resultado", "comentarios"]
+        fields  = ["comentarios"]
         widgets = {"comentarios": forms.Textarea(attrs={"rows": 3})}
 
 
@@ -185,3 +189,66 @@ class DetalleCajaVaciaForm(forms.ModelForm):
             "bisagras", "mecanismos_de_cierre", "puertas_simetricas",
             "parches_y_reparaciones", "limpieza", "paredes_de_interior",
         ]
+
+
+class DetalleDiecinuevePuntosForm(forms.ModelForm):
+    class Meta:
+        model  = DetalleDiecinuevePuntos
+        fields = [
+            "defensa", "llantas_y_rines", "piso_tractor", "tanque_gasolina",
+            "interior_cabina", "tanques_de_aire", "chasis_y_quinta_rueda",
+            "ejes_de_transmision", "tubo_de_escape", "motor",
+            "base_del_remolque", "puertas_interiores", "pared_lateral_derecha",
+            "techo_interno_y_externo", "pared_frontal", "pared_lateral_izquierda",
+            "piso_interno", "eje_palanca_patin", "sistema_refrigeracion",
+        ]
+
+
+class DetalleCincoPuntosForm(forms.ModelForm):
+    class Meta:
+        model  = DetalleCincoPuntos
+        fields = ["ver_sellos", "verificar_sello", "tirar_sello", "torcer_sello", "verificar_bisagra"]
+
+
+class DetalleCaninaForm(forms.ModelForm):
+    class Meta:
+        model  = DetalleCanina
+        fields = ["aprobado"]
+
+
+class DetalleMedidasRemolqueForm(forms.ModelForm):
+    class Meta:
+        model   = DetalleMedidasRemolque
+        fields  = ["largo", "ancho", "alto"]
+        widgets = {
+            "largo": forms.NumberInput(attrs={"step": "0.01", "min": "0", "placeholder": "m"}),
+            "ancho": forms.NumberInput(attrs={"step": "0.01", "min": "0", "placeholder": "m"}),
+            "alto":  forms.NumberInput(attrs={"step": "0.01", "min": "0", "placeholder": "m"}),
+        }
+
+
+class RegistroLlantaForm(forms.ModelForm):
+    _VALIDADO = [("1", "Sí"), ("0", "No")]
+    validado = forms.TypedChoiceField(
+        choices=_VALIDADO,
+        coerce=lambda x: x == "1",
+        required=False,
+        label="Validado",
+        initial="0",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["marca"].queryset   = Marca.objects.filter(aplica_llanta=True, activo=True)
+        self.fields["medida"].queryset  = MedidaLlanta.objects.all()
+        self.fields["marca"].required   = False
+        self.fields["medida"].required  = False
+        # Represent the stored boolean as the string the TypedChoiceField expects
+        if self.instance and self.instance.pk is not None:
+            self.initial["validado"] = "1" if self.instance.validado else "0"
+        else:
+            self.initial["validado"] = "0"
+
+    class Meta:
+        model  = RegistroLlanta
+        fields = ["cautin", "marca", "medida", "origen", "validado"]

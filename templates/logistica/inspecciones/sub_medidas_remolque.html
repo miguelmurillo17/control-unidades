@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Medidas de remolque — Inspección #{{ inspeccion.pk }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+<link rel="stylesheet" href="{% static 'css/inspeccion.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="registrar" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div>
+                <h1>Medidas de remolque</h1>
+                <p>Inspección <a href="{% url 'inspeccion_detalle' inspeccion.pk %}" class="link-muted">#{{ inspeccion.pk }}</a>
+                {% with m=inspeccion.movimiento.manifiesto %}
+                {% if m %} · {% if m.folio_hoja_viajera %}{{ m.folio_hoja_viajera }}{% else %}#{{ m.pk }}{% endif %}{% endif %}
+                {% endwith %}
+                </p>
+            </div>
+        </header>
+
+        <section class="page-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if sub_form.non_field_errors or detalle_form.non_field_errors %}
+                <div class="field-error" style="margin-bottom:16px">
+                    {{ sub_form.non_field_errors.0 }}{{ detalle_form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                <!-- Dimensiones -->
+                <div class="form-section">
+                    <h2 class="form-section-title">Dimensiones (metros)</h2>
+                    <div class="form-card form-card-wide">
+                        <div class="form-grid form-grid-cols-3">
+
+                            <div class="field">
+                                <label for="{{ detalle_form.largo.id_for_label }}">
+                                    {{ detalle_form.largo.label }}
+                                </label>
+                                <input type="number"
+                                       id="{{ detalle_form.largo.id_for_label }}"
+                                       name="{{ detalle_form.largo.html_name }}"
+                                       step="0.01" min="0"
+                                       placeholder="m"
+                                       value="{{ detalle_form.largo.value|default:'' }}">
+                                {% if detalle_form.largo.errors %}<span class="field-error">{{ detalle_form.largo.errors.0 }}</span>{% endif %}
+                            </div>
+
+                            <div class="field">
+                                <label for="{{ detalle_form.ancho.id_for_label }}">
+                                    {{ detalle_form.ancho.label }}
+                                </label>
+                                <input type="number"
+                                       id="{{ detalle_form.ancho.id_for_label }}"
+                                       name="{{ detalle_form.ancho.html_name }}"
+                                       step="0.01" min="0"
+                                       placeholder="m"
+                                       value="{{ detalle_form.ancho.value|default:'' }}">
+                                {% if detalle_form.ancho.errors %}<span class="field-error">{{ detalle_form.ancho.errors.0 }}</span>{% endif %}
+                            </div>
+
+                            <div class="field">
+                                <label for="{{ detalle_form.alto.id_for_label }}">
+                                    {{ detalle_form.alto.label }}
+                                </label>
+                                <input type="number"
+                                       id="{{ detalle_form.alto.id_for_label }}"
+                                       name="{{ detalle_form.alto.html_name }}"
+                                       step="0.01" min="0"
+                                       placeholder="m"
+                                       value="{{ detalle_form.alto.value|default:'' }}">
+                                {% if detalle_form.alto.errors %}<span class="field-error">{{ detalle_form.alto.errors.0 }}</span>{% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="form-section">
+                    <div class="form-card form-card-wide">
+                        <div class="form-grid">
+                            <div class="field field-wide">
+                                <label for="{{ sub_form.comentarios.id_for_label }}">
+                                    {{ sub_form.comentarios.label }} <span class="field-optional">(opcional)</span>
+                                </label>
+                                <textarea id="{{ sub_form.comentarios.id_for_label }}"
+                                          name="{{ sub_form.comentarios.html_name }}"
+                                          rows="3">{{ sub_form.comentarios.value|default:'' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'inspeccion_detalle' inspeccion.pk %}" class="btn-secondary-sm">Cancelar</a>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+{% endblock %}

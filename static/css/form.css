@@ -6,6 +6,14 @@
     max-width: 560px;
 }
 
+.form-card-wide {
+    max-width: none;
+}
+
+.form-grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
 .form-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

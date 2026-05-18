@@ -207,6 +207,114 @@
     font-weight: 500;
 }
 
+/* ── Tabla de llantas ────────────────────────────────────────────────────── */
+
+.llantas-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+}
+
+.llantas-table thead tr {
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.lt-header {
+    padding: 10px 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    text-align: left;
+    white-space: nowrap;
+}
+
+.lt-header.lt-pos  { width: 130px; }
+.lt-header.lt-center { text-align: center; }
+
+.llantas-table tbody tr {
+    border-bottom: 1px solid var(--color-border);
+    transition: background 0.1s;
+}
+
+.llantas-table tbody tr:last-child { border-bottom: none; }
+.llantas-table tbody tr:hover      { background: #f8fafc; }
+
+.lt-cell {
+    padding: 10px 14px;
+    vertical-align: middle;
+}
+
+.lt-pos-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+.lt-input {
+    width: 100%;
+    min-width: 80px;
+    padding: 6px 10px;
+    font-size: 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    outline: none;
+    box-sizing: border-box;
+}
+
+.lt-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+
+.lt-select {
+    width: 100%;
+    min-width: 100px;
+    padding: 6px 10px;
+    font-size: 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    outline: none;
+    box-sizing: border-box;
+}
+
+.lt-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+
+.lt-center { text-align: center; }
+
+.lt-radio-group {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+.lt-radio {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.lt-radio input[type="radio"] {
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+
+.row-error td { background: #fff5f5; }
+
 /* Link muted en el breadcrumb */
 .link-muted {
     color: var(--color-text-muted);

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Inspección de caja vacía — Inspección #{{ inspeccion.pk }}{% endblock %}
+{% block title %}Inspección canina — Inspección #{{ inspeccion.pk }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -16,7 +16,7 @@
     <main class="main-content">
         <header class="page-header">
             <div>
-                <h1>Inspección de caja vacía</h1>
+                <h1>Inspección canina</h1>
                 <p>Inspección <a href="{% url 'inspeccion_detalle' inspeccion.pk %}" class="link-muted">#{{ inspeccion.pk }}</a>
                 {% with m=inspeccion.movimiento.manifiesto %}
                 {% if m %} · {% if m.folio_hoja_viajera %}{{ m.folio_hoja_viajera }}{% else %}#{{ m.pk }}{% endif %}{% endif %}
@@ -35,39 +35,30 @@
                 </div>
                 {% endif %}
 
-                <!-- Checklist -->
+                <!-- Resultado de la inspección canina -->
                 <div class="form-section">
-                    <h2 class="form-section-title">Puntos de revisión</h2>
-                    <div class="checklist-card">
-                        <table class="checklist-table">
-                            <thead>
-                                <tr>
-                                    <th class="checklist-label-header">Punto</th>
-                                    <th class="checklist-opt-header">Bien</th>
-                                    <th class="checklist-opt-header">Mal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.techo_libre_filtraciones %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.libre_olores %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.pisos_integros %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.paredes_integros %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.techos_integros %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.bisagras %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.mecanismos_de_cierre %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.puertas_simetricas %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.parches_y_reparaciones %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.limpieza %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.paredes_de_interior %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Observaciones -->
-                <div class="form-section">
+                    <h2 class="form-section-title">Resultado de la inspección</h2>
                     <div class="form-card form-card-wide">
                         <div class="form-grid">
+
+                            <div class="field field-wide">
+                                <label>{{ detalle_form.aprobado.label }}</label>
+                                <div class="radio-group">
+                                    {% for val, label in detalle_form.aprobado.field.choices %}
+                                    {% if val %}
+                                    <label class="radio-option">
+                                        <input type="radio"
+                                               name="{{ detalle_form.aprobado.html_name }}"
+                                               value="{{ val }}"
+                                               {% if detalle_form.aprobado.value == val %}checked{% endif %}>
+                                        <span>{{ label }}</span>
+                                    </label>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% if detalle_form.aprobado.errors %}<span class="field-error">{{ detalle_form.aprobado.errors.0 }}</span>{% endif %}
+                            </div>
+
                             <div class="field field-wide">
                                 <label for="{{ sub_form.comentarios.id_for_label }}">
                                     {{ sub_form.comentarios.label }} <span class="field-optional">(opcional)</span>
@@ -76,6 +67,7 @@
                                           name="{{ sub_form.comentarios.html_name }}"
                                           rows="3">{{ sub_form.comentarios.value|default:'' }}</textarea>
                             </div>
+
                         </div>
                     </div>
                 </div>

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Inspección de caja — Inspección #{{ inspeccion.pk }}{% endblock %}
+{% block title %}5 puntos VVTTB — Inspección #{{ inspeccion.pk }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -16,7 +16,7 @@
     <main class="main-content">
         <header class="page-header">
             <div>
-                <h1>Inspección de caja</h1>
+                <h1>Inspección de 5 puntos (VVTTB)</h1>
                 <p>Inspección <a href="{% url 'inspeccion_detalle' inspeccion.pk %}" class="link-muted">#{{ inspeccion.pk }}</a>
                 {% with m=inspeccion.movimiento.manifiesto %}
                 {% if m %} · {% if m.folio_hoja_viajera %}{{ m.folio_hoja_viajera }}{% else %}#{{ m.pk }}{% endif %}{% endif %}
@@ -48,19 +48,11 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.remaches_de_carga %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.manitas %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.patines %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.soqueteras %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.manivelas %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.golpes_y_rallones %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.reflejantes %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.molduras %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.bisagras %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.llantas %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.receptor_electrico %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.luz_lateral %}
-                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.luz_trasera %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.ver_sellos %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.verificar_sello %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.tirar_sello %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.torcer_sello %}
+                                {% include "logistica/inspecciones/_checklist_row.html" with field=detalle_form.verificar_bisagra %}
                             </tbody>
                         </table>
                     </div>

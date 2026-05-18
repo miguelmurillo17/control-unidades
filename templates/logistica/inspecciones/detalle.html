@@ -63,15 +63,11 @@
                     </thead>
                     <tbody>
                         {% for sub in sub_inspecciones %}
-                        <tr class="{% if sub.resultado %}row-completada{% else %}row-pendiente{% endif %}">
+                        <tr class="{% if sub.fecha_hora_fin %}row-completada{% endif %}">
                             <td class="cell-primary">{{ sub.get_tipo_display }}</td>
                             <td>
-                                {% if sub.resultado == "APROBADO" %}
-                                <span class="badge badge-green">Aprobado</span>
-                                {% elif sub.resultado == "RECHAZADO" %}
-                                <span class="badge badge-red">Rechazado</span>
-                                {% elif sub.resultado == "NA" %}
-                                <span class="badge badge-gray">No aplica</span>
+                                {% if sub.fecha_hora_fin %}
+                                <span class="badge badge-green">Completada</span>
                                 {% else %}
                                 <span class="badge badge-yellow">Pendiente</span>
                                 {% endif %}
@@ -80,7 +76,7 @@
                             <td class="cell-actions">
                                 {% if inspeccion.estado == "EN_PROCESO" %}
                                 <a href="{% url 'sub_inspeccion_form' inspeccion.pk sub.pk %}" class="action-link">
-                                    {% if sub.resultado %}Editar{% else %}Llenar{% endif %}
+                                    {% if sub.fecha_hora_fin %}Editar{% else %}Llenar{% endif %}
                                 </a>
                                 {% endif %}
                             </td>

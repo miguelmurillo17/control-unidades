@@ -82,30 +82,10 @@
                     </div>
                 </div>
 
-                <!-- Resultado de la sub-inspección -->
+                <!-- Observaciones -->
                 <div class="form-section">
-                    <h2 class="form-section-title">Resultado</h2>
                     <div class="form-card form-card-wide">
                         <div class="form-grid">
-
-                            <div class="field field-wide">
-                                <label>{{ sub_form.resultado.label }}</label>
-                                <div class="radio-group">
-                                    {% for val, label in sub_form.resultado.field.choices %}
-                                    {% if val %}
-                                    <label class="radio-option">
-                                        <input type="radio"
-                                               name="{{ sub_form.resultado.html_name }}"
-                                               value="{{ val }}"
-                                               {% if sub_form.resultado.value == val %}checked{% endif %}>
-                                        <span>{{ label }}</span>
-                                    </label>
-                                    {% endif %}
-                                    {% endfor %}
-                                </div>
-                                {% if sub_form.resultado.errors %}<span class="field-error">{{ sub_form.resultado.errors.0 }}</span>{% endif %}
-                            </div>
-
                             <div class="field field-wide">
                                 <label for="{{ sub_form.comentarios.id_for_label }}">
                                     {{ sub_form.comentarios.label }} <span class="field-optional">(opcional)</span>
@@ -114,7 +94,6 @@
                                           name="{{ sub_form.comentarios.html_name }}"
                                           rows="3">{{ sub_form.comentarios.value|default:'' }}</textarea>
                             </div>
-
                         </div>
                     </div>
                 </div>
