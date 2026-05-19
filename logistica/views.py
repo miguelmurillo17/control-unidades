@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse_lazy
@@ -271,10 +272,7 @@ def _validate_checklist(sub_form, detalle_form, tipo):
 
 
 def _marcar_completada_si_aplica(inspeccion):
-    todas = inspeccion.sub_inspecciones.all()
-    if all(s.completada for s in todas):
-        inspeccion.estado = "COMPLETADA"
-        inspeccion.save(update_fields=["estado"])
+    pass  # El estado se cierra explícitamente desde cerrar_inspeccion
 
 
 @login_required
@@ -595,6 +593,27 @@ def manifiestos_list(request):
         .order_by("-created_at")
     )
     return render(request, "logistica/manifiestos/list.html", {"manifiestos": manifiestos})
+
+
+@login_required
+@require_POST
+def cerrar_inspeccion(request, pk):
+    from django.core.exceptions import PermissionDenied
+    if request.user.rol not in ("CASETA", "ADMIN"):
+        raise PermissionDenied
+
+    inspeccion = get_object_or_404(Inspeccion, pk=pk)
+
+    if inspeccion.estado != "EN_PROCESO":
+        return redirect("inspeccion_detalle", pk=pk)
+
+    subs = list(inspeccion.sub_inspecciones.all())
+    if not subs or not all(s.completada for s in subs):
+        return redirect("inspeccion_detalle", pk=pk)
+
+    inspeccion.estado = "COMPLETADA"
+    inspeccion.save(update_fields=["estado"])
+    return redirect("inspeccion_detalle", pk=pk)
 
 
 @login_required

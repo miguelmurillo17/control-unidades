@@ -167,9 +167,6 @@ class DetalleGeneralForm(forms.ModelForm):
         for name in ("anio_remolque", "anio_contenedor"):
             self.fields[name].widget = forms.NumberInput(attrs={"min": 1950, "max": self._año_max})
         _make_optional(self)
-        # marca_remolque/contenedor muestran label sin "(opcional)"
-        self.fields["marca_remolque"].required   = True
-        self.fields["marca_contenedor"].required = True
 
     def _validar_anio(self, field_name):
         valor = self.cleaned_data.get(field_name)

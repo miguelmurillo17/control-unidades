@@ -34,8 +34,63 @@
                 {% elif inspeccion.estado == "RECHAZADA" %}
                 <span class="badge badge-red">Rechazada</span>
                 {% endif %}
+
+                {% if inspeccion.estado == "EN_PROCESO" %}
+                <button type="button"
+                        class="btn-cerrar-inspeccion"
+                        {% if completadas < total or total == 0 %}disabled{% endif %}
+                        onclick="document.getElementById('dialog-cerrar').showModal()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    Cerrar inspección
+                </button>
+                {% endif %}
             </div>
         </header>
+
+        <dialog id="dialog-cerrar" class="confirm-dialog">
+            <div class="confirm-dialog-header">
+                <div class="confirm-dialog-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="confirm-dialog-title">Cerrar inspección</h2>
+                    <p class="confirm-dialog-subtitle">Inspección #{{ inspeccion.pk }}</p>
+                </div>
+            </div>
+            <div class="confirm-dialog-body">
+                <p class="confirm-dialog-msg">
+                    Esta acción es <strong>inamovible</strong>. Una vez cerrada, la inspección
+                    quedará marcada como completada y no podrá volver a modificarse.
+                </p>
+            </div>
+            <div class="confirm-dialog-actions">
+                <button type="button" class="confirm-btn-cancel"
+                        onclick="document.getElementById('dialog-cerrar').close()">
+                    Cancelar
+                </button>
+                <form method="post" action="{% url 'cerrar_inspeccion' inspeccion.pk %}" style="display:contents">
+                    {% csrf_token %}
+                    <button type="submit" class="confirm-btn-confirm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Confirmar cierre
+                    </button>
+                </form>
+            </div>
+        </dialog>
 
         <section class="page-body">
 
@@ -85,6 +140,7 @@
                     </tbody>
                 </table>
             </div>
+            
 
         </section>
     </main>

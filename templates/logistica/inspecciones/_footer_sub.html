@@ -14,7 +14,9 @@
             <textarea id="{{ sub_form.comentarios.id_for_label }}"
                       name="{{ sub_form.comentarios.html_name }}"
                       class="footer-sub-textarea{% if sub_form.comentarios.errors %} input-error{% endif %}"
-                      rows="5">{{ sub_form.comentarios.value|default:'' }}</textarea>
+                      rows="5"
+                      oninput="this.value=this.value.toUpperCase()"
+                      style="text-transform:uppercase">{{ sub_form.comentarios.value|default:''|upper }}</textarea>
             {% if sub_form.comentarios.errors %}
             <span class="field-error">{{ sub_form.comentarios.errors.0 }}</span>
             {% endif %}
@@ -73,21 +75,6 @@
 
 <script>
 (function () {
-    // Uppercase all text inputs — event delegation covers formset rows too
-    var form = document.querySelector('form');
-    if (form) {
-        form.querySelectorAll('input[type="text"]').forEach(function (el) {
-            el.style.textTransform = 'uppercase';
-        });
-        form.addEventListener('input', function (e) {
-            if (e.target && e.target.type === 'text') {
-                var pos = e.target.selectionStart;
-                e.target.value = e.target.value.toUpperCase();
-                try { e.target.setSelectionRange(pos, pos); } catch (_) {}
-            }
-        });
-    }
-
     // Photo preview
     var input = document.getElementById('foto-input');
     var grid  = document.getElementById('foto-grid');

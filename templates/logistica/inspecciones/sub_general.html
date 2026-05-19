@@ -62,7 +62,7 @@
 
                             {% include "logistica/inspecciones/_field.html" with field=detalle_form.anio_remolque %}
                             {% include "logistica/inspecciones/_field.html" with field=detalle_form.vin_remolque %}
-                            {% include "logistica/inspecciones/_field_select.html" with field=detalle_form.marca_remolque %}
+                            {% include "logistica/inspecciones/_field_select.html" with field=detalle_form.marca_remolque visually_required=True %}
 
                         </div>
                     </div>
@@ -76,7 +76,7 @@
 
                             {% include "logistica/inspecciones/_field.html" with field=detalle_form.anio_contenedor %}
                             {% include "logistica/inspecciones/_field.html" with field=detalle_form.vin_contenedor %}
-                            {% include "logistica/inspecciones/_field_select.html" with field=detalle_form.marca_contenedor %}
+                            {% include "logistica/inspecciones/_field_select.html" with field=detalle_form.marca_contenedor visually_required=True %}
 
                         </div>
                     </div>
