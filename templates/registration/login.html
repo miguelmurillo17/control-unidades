@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block body %}
-<div class="login-layout">
+<div id="login-app" class="login-layout">
 
     <div class="login-brand">
         <span class="brand-icon">
@@ -35,7 +35,7 @@
         </div>
         {% endif %}
 
-        <form method="post" novalidate>
+        <form method="post" novalidate @submit="onSubmit">
             {% csrf_token %}
 
             <div class="field">
@@ -57,24 +57,67 @@
 
             <div class="field">
                 <label for="{{ form.password.id_for_label }}">Contraseña</label>
-                <input
-                    type="password"
-                    id="{{ form.password.id_for_label }}"
-                    name="{{ form.password.html_name }}"
-                    placeholder="••••••••"
-                    autocomplete="current-password"
-                    class="{% if form.password.errors %}input-error{% endif %}"
-                >
+                <div class="input-wrapper">
+                    <input
+                        :type="showPassword ? 'text' : 'password'"
+                        id="{{ form.password.id_for_label }}"
+                        name="{{ form.password.html_name }}"
+                        placeholder="••••••••"
+                        autocomplete="current-password"
+                        class="{% if form.password.errors %}input-error{% endif %}"
+                    >
+                    <button type="button" class="toggle-password" @click="showPassword = !showPassword" :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                        <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                    </button>
+                </div>
                 {% if form.password.errors %}
                     <span class="field-error">{{ form.password.errors.0 }}</span>
                 {% endif %}
             </div>
 
-            <button type="submit" class="btn-primary">Entrar</button>
+            <button type="submit" class="btn-primary" :disabled="loading">
+                <span v-if="!loading">Entrar</span>
+                <span v-else class="btn-loading">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         class="spin">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                    </svg>
+                    Verificando…
+                </span>
+            </button>
         </form>
     </div>
 
     <p class="login-footer">Sistema interno — acceso restringido</p>
 
 </div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+const { createApp } = Vue;
+createApp({
+    data() {
+        return {
+            showPassword: false,
+            loading: false,
+        };
+    },
+    methods: {
+        onSubmit() {
+            this.loading = true;
+        },
+    },
+}).mount('#login-app');
+</script>
 {% endblock %}

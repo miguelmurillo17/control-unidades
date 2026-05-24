@@ -113,6 +113,35 @@
     color: var(--color-error);
 }
 
+/* ── Input con toggle ── */
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding-right: 40px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    transition: color .15s;
+}
+
+.toggle-password:hover {
+    color: var(--color-text);
+}
+
 /* ── Botón ── */
 .btn-primary {
     width: 100%;
@@ -128,8 +157,28 @@
     transition: background .15s;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
     background: var(--color-primary-hover);
+}
+
+.btn-primary:disabled {
+    opacity: .7;
+    cursor: not-allowed;
+}
+
+.btn-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spin {
+    animation: spin .7s linear infinite;
 }
 
 /* ── Pie ── */

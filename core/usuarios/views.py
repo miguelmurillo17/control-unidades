@@ -13,13 +13,13 @@ from logistica.models import Movimiento, Unidad, Sucursal
 
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     def test_func(self):
-        return self.request.user.rol == "ADMIN"
+        return self.request.user.is_superuser or self.request.user.rol == "ADMIN"
 
 
 @login_required
 def dashboard(request):
     context = {}
-    if request.user.rol == "ADMIN":
+    if request.user.is_superuser or request.user.rol == "ADMIN":
         hoy = timezone.localdate()
         context["total_unidades_activas"] = Unidad.objects.filter(activo=True).count()
         context["total_sucursales"] = Sucursal.objects.filter(activo=True).count()

@@ -26,7 +26,7 @@ from .services import detectar_inconsistencias, crear_movimiento
 
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     def test_func(self):
-        return self.request.user.rol == "ADMIN"
+        return self.request.user.is_superuser or self.request.user.rol == "ADMIN"
 
 
 class SucursalListView(AdminRequiredMixin, ListView):
@@ -108,8 +108,27 @@ class UnidadDeleteView(AdminRequiredMixin, DeleteView):
 
 
 @login_required
+def todos_los_registros(request):
+    if not request.user.is_superuser and request.user.rol not in ("ADMIN", "CONTROL"):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+
+    movimientos = (
+        Movimiento.objects
+        .select_related("usuario", "sucursal")
+        .prefetch_related("unidad_movimientos__unidad")
+        .order_by("-fecha_hora_evento")
+    )
+    return render(request, "logistica/movimientos/mis_registros.html", {
+        "movimientos": movimientos,
+        "mostrar_usuario": True,
+        "active_nav": "todos_los_registros",
+    })
+
+
+@login_required
 def mis_registros(request):
-    if request.user.rol != "CASETA":
+    if not request.user.is_superuser and request.user.rol != "CASETA":
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
 
@@ -126,7 +145,7 @@ def mis_registros(request):
 
 @login_required
 def registrar_movimiento(request):
-    if request.user.rol != "CASETA":
+    if not request.user.is_superuser and request.user.rol != "CASETA":
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
 
@@ -161,7 +180,7 @@ def registrar_movimiento(request):
 
 @login_required
 def mis_inspecciones(request):
-    if request.user.rol not in ("CASETA", "ADMIN"):
+    if not request.user.is_superuser and request.user.rol not in ("CASETA", "ADMIN"):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
 
@@ -182,7 +201,7 @@ def mis_inspecciones(request):
 
 @login_required
 def inspeccion_detalle(request, pk):
-    if request.user.rol not in ("CASETA", "ADMIN"):
+    if not request.user.is_superuser and request.user.rol not in ("CASETA", "ADMIN"):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
 
@@ -277,7 +296,7 @@ def _marcar_completada_si_aplica(inspeccion):
 
 @login_required
 def sub_inspeccion_form(request, pk, sub_pk):
-    if request.user.rol not in ("CASETA", "ADMIN"):
+    if not request.user.is_superuser and request.user.rol not in ("CASETA", "ADMIN"):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
 
@@ -581,7 +600,7 @@ def _sub_form_medidas_remolque(request, inspeccion, sub_inspeccion):
 
 @login_required
 def manifiestos_list(request):
-    if request.user.rol != "PLANEACION":
+    if not request.user.is_superuser and request.user.rol != "PLANEACION":
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
 
@@ -599,7 +618,7 @@ def manifiestos_list(request):
 @require_POST
 def cerrar_inspeccion(request, pk):
     from django.core.exceptions import PermissionDenied
-    if request.user.rol not in ("CASETA", "ADMIN"):
+    if not request.user.is_superuser and request.user.rol not in ("CASETA", "ADMIN"):
         raise PermissionDenied
 
     inspeccion = get_object_or_404(Inspeccion, pk=pk)
@@ -618,7 +637,7 @@ def cerrar_inspeccion(request, pk):
 
 @login_required
 def registrar_manifiesto(request):
-    if request.user.rol != "PLANEACION":
+    if not request.user.is_superuser and request.user.rol != "PLANEACION":
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
 
@@ -653,7 +672,7 @@ def registrar_manifiesto(request):
 
 @login_required
 def editar_manifiesto(request, pk):
-    if request.user.rol != "PLANEACION":
+    if not request.user.is_superuser and request.user.rol != "PLANEACION":
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
 

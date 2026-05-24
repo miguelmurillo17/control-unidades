@@ -274,6 +274,60 @@
     line-height: 1;
 }
 
+/* ── Nav divider ── */
+.nav-divider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 8px 4px;
+}
+
+/* ── Nav group (Catálogos) ── */
+.nav-group-toggle {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+}
+
+.nav-chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+    transition: transform .22s ease;
+}
+
+.nav-chevron--open {
+    transform: rotate(180deg);
+}
+
+/* ── Submenu ── */
+.nav-submenu {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.nav-subitem {
+    padding-left: 32px;
+    font-size: 12.5px;
+}
+
+.submenu-enter-active,
+.submenu-leave-active {
+    transition: max-height .25s ease, opacity .2s ease;
+    max-height: 160px;
+    overflow: hidden;
+}
+
+.submenu-enter-from,
+.submenu-leave-to {
+    max-height: 0;
+    opacity: 0;
+}
+
 /* ── Empty state ── */
 .empty-state {
     padding: 48px 0;
