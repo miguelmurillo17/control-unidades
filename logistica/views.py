@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import get_object_or_404, render, redirect
+from django.http import HttpResponse
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
@@ -116,7 +118,7 @@ def todos_los_registros(request):
     movimientos = (
         Movimiento.objects
         .select_related("usuario", "sucursal")
-        .prefetch_related("unidad_movimientos__unidad")
+        .prefetch_related("unidad_movimientos__unidad", "inspeccion")
         .order_by("-fecha_hora_evento")
     )
     return render(request, "logistica/movimientos/mis_registros.html", {
@@ -135,7 +137,8 @@ def mis_registros(request):
     movimientos = (
         Movimiento.objects
         .filter(usuario=request.user)
-        .prefetch_related("unidad_movimientos__unidad", "sucursal")
+        .select_related("sucursal")
+        .prefetch_related("unidad_movimientos__unidad", "inspeccion")
         .order_by("-fecha_hora_evento")
     )
     return render(request, "logistica/movimientos/mis_registros.html", {
@@ -740,3 +743,45 @@ def editar_manifiesto(request, pk):
         "manifiesto": manifiesto,
         "active_nav": "manifiestos",
     })
+
+
+@login_required
+def inspeccion_pdf(request, pk):
+    from django.core.exceptions import PermissionDenied
+    if not request.user.is_superuser and request.user.rol not in ("CASETA", "ADMIN", "CONTROL"):
+        raise PermissionDenied
+
+    inspeccion = get_object_or_404(
+        Inspeccion.objects.select_related(
+            "movimiento__sucursal",
+            "movimiento__usuario",
+            "movimiento__manifiesto",
+        ).prefetch_related(
+            "movimiento__unidad_movimientos__unidad",
+            "sub_inspecciones__detalle_general__marca_remolque",
+            "sub_inspecciones__detalle_general__marca_contenedor",
+            "sub_inspecciones__detalle_caja",
+            "sub_inspecciones__detalle_caja_vacia",
+            "sub_inspecciones__detalle_cinco_puntos",
+            "sub_inspecciones__detalle_diecinueve_puntos",
+            "sub_inspecciones__detalle_canina",
+            "sub_inspecciones__detalle_medidas_remolque",
+            "sub_inspecciones__llantas__posicion",
+            "sub_inspecciones__llantas__marca",
+            "sub_inspecciones__llantas__medida",
+        ),
+        pk=pk,
+    )
+
+    html_string = render_to_string(
+        "logistica/inspecciones/pdf_reporte.html",
+        {"inspeccion": inspeccion},
+        request=request,
+    )
+
+    from weasyprint import HTML
+    pdf = HTML(string=html_string, base_url=request.build_absolute_uri("/")).write_pdf()
+
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="inspeccion-{inspeccion.pk}.pdf"'
+    return response

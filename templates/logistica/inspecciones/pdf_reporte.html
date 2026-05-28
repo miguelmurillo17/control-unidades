@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Inspección #{{ inspeccion.pk }}</title>
+<style>
+  @page {
+    size: letter;
+    margin: 14mm 14mm 16mm 14mm;
+    @bottom-center {
+      content: "Página " counter(page) " de " counter(pages);
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 8pt;
+      color: #94a3b8;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 9pt;
+    color: #1e293b;
+    background: #fff;
+  }
+
+  /* ── Header ────────────────────────────────── */
+  .report-header {
+    background: #1a2744;
+    color: #fff;
+    padding: 12px 16px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .report-header-left { flex: 1; }
+  .report-header-right { text-align: right; }
+  .report-title {
+    font-size: 14pt;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    margin-bottom: 3px;
+  }
+  .report-subtitle {
+    font-size: 8pt;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .report-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 8pt;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .badge-green  { background: #dcfce7; color: #15803d; }
+  .badge-yellow { background: #fef9c3; color: #a16207; }
+  .badge-red    { background: #fee2e2; color: #b91c1c; }
+
+  /* ── Meta row ───────────────────────────────── */
+  .meta-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .meta-card {
+    flex: 1;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 7px 10px;
+  }
+  .meta-label {
+    font-size: 7pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    margin-bottom: 2px;
+  }
+  .meta-value {
+    font-size: 9.5pt;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  /* ── Section ────────────────────────────────── */
+  .section {
+    margin-bottom: 9px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+    page-break-inside: avoid;
+  }
+  .section-header {
+    background: #2b4c8c;
+    color: #fff;
+    padding: 5px 12px;
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .section-body {
+    padding: 8px 12px;
+  }
+
+  /* ── Info grid ──────────────────────────────── */
+  .info-grid {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .info-grid td {
+    padding: 4px 8px;
+    border: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+  .info-grid .lbl {
+    font-size: 7pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    display: block;
+    margin-bottom: 1px;
+  }
+  .info-grid .val {
+    font-size: 9pt;
+    font-weight: 600;
+    color: #1e293b;
+  }
+  .info-grid .val-empty {
+    color: #cbd5e1;
+    font-weight: 400;
+  }
+
+  /* ── Checklist table ────────────────────────── */
+  .checklist-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .checklist-table th {
+    font-size: 7pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    padding: 3px 8px;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+    letter-spacing: 0.3px;
+  }
+  .checklist-table td {
+    padding: 3.5px 8px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 8.5pt;
+  }
+  .checklist-table tr:last-child td { border-bottom: none; }
+  .checklist-table .col-item { width: 75%; }
+  .checklist-table .col-si   { width: 12.5%; text-align: center; }
+  .checklist-table .col-no   { width: 12.5%; text-align: center; }
+
+  .check-si {
+    display: inline-block;
+    width: 16px; height: 16px;
+    background: #dcfce7;
+    color: #15803d;
+    border-radius: 3px;
+    text-align: center;
+    line-height: 16px;
+    font-weight: 700;
+    font-size: 10pt;
+  }
+  .check-no {
+    display: inline-block;
+    width: 16px; height: 16px;
+    background: #fee2e2;
+    color: #b91c1c;
+    border-radius: 3px;
+    text-align: center;
+    line-height: 16px;
+    font-weight: 700;
+    font-size: 10pt;
+  }
+  .check-empty {
+    display: inline-block;
+    width: 16px; height: 16px;
+    background: #f1f5f9;
+    border-radius: 3px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .row-alt { background: #fafafa; }
+
+  /* ── Llantas table ──────────────────────────── */
+  .llantas-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8pt;
+  }
+  .llantas-table th {
+    background: #f1f5f9;
+    font-size: 7pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    padding: 4px 6px;
+    border: 1px solid #e2e8f0;
+    letter-spacing: 0.3px;
+  }
+  .llantas-table td {
+    padding: 3.5px 6px;
+    border: 1px solid #e2e8f0;
+    vertical-align: middle;
+  }
+  .validated-yes { color: #15803d; font-weight: 700; }
+  .validated-no  { color: #94a3b8; }
+
+  /* ── Columns layout ─────────────────────────── */
+  .two-col {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 9px;
+  }
+  .two-col .section {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  /* ── Observaciones ──────────────────────────── */
+  .obs-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 8.5pt;
+    margin-top: 6px;
+    color: #78350f;
+  }
+  .obs-label {
+    font-size: 7pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+    color: #92400e;
+  }
+
+  /* ── Firmas ─────────────────────────────────── */
+  .firmas-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    page-break-inside: avoid;
+  }
+  .firma-box {
+    flex: 1;
+    border-top: 2px solid #cbd5e1;
+    padding-top: 5px;
+    text-align: center;
+  }
+  .firma-label {
+    font-size: 7.5pt;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .firma-space {
+    height: 28px;
+  }
+
+  /* ── Medidas ────────────────────────────────── */
+  .medidas-row {
+    display: flex;
+    gap: 10px;
+    padding: 4px 0;
+  }
+  .medida-item {
+    flex: 1;
+    text-align: center;
+  }
+  .medida-num {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #2b4c8c;
+  }
+  .medida-unit {
+    font-size: 7pt;
+    color: #64748b;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="report-header">
+  <div class="report-header-left">
+    <div class="report-title">Inspección a Remolque y Tractor</div>
+    <div class="report-subtitle">Reporte oficial de inspección de unidades</div>
+  </div>
+  <div class="report-header-right">
+    <div style="font-size:8pt;color:#94a3b8;margin-bottom:3px;">No. de inspección</div>
+    <div style="font-size:18pt;font-weight:700;line-height:1;">#{{ inspeccion.pk }}</div>
+    <div style="margin-top:5px;">
+      {% if inspeccion.estado == "COMPLETADA" %}
+        <span class="report-badge badge-green">Completada</span>
+      {% elif inspeccion.estado == "EN_PROCESO" %}
+        <span class="report-badge badge-yellow">En proceso</span>
+      {% else %}
+        <span class="report-badge badge-red">Rechazada</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ── Meta row ── -->
+<div class="meta-row">
+  <div class="meta-card">
+    <div class="meta-label">Fecha y hora</div>
+    <div class="meta-value">{{ inspeccion.movimiento.fecha_hora_evento|date:"d/m/Y H:i" }}</div>
+  </div>
+  <div class="meta-card">
+    <div class="meta-label">Sucursal</div>
+    <div class="meta-value">{{ inspeccion.movimiento.sucursal.nombre }}</div>
+  </div>
+  <div class="meta-card">
+    <div class="meta-label">Inspector</div>
+    <div class="meta-value">{{ inspeccion.movimiento.usuario.get_full_name|default:inspeccion.movimiento.usuario.username }}</div>
+  </div>
+  {% with m=inspeccion.movimiento %}
+  {% for um in m.unidad_movimientos.all %}{% if um.unidad.tipo == "TRACTOR" %}
+  <div class="meta-card">
+    <div class="meta-label">Tractor</div>
+    <div class="meta-value">{{ um.unidad.numero_economico }}</div>
+  </div>
+  {% endif %}{% endfor %}
+  {% for um in m.unidad_movimientos.all %}{% if um.unidad.tipo == "REMOLQUE" %}
+  <div class="meta-card">
+    <div class="meta-label">Remolque</div>
+    <div class="meta-value">{{ um.unidad.numero_economico }}</div>
+  </div>
+  {% endif %}{% endfor %}
+  {% endwith %}
+</div>
+
+<!-- ── Sección: Datos generales ── -->
+{% for sub in inspeccion.sub_inspecciones.all %}{% if sub.tipo == "GENERAL" %}
+<div class="section">
+  <div class="section-header">Datos generales del vehículo</div>
+  <div class="section-body">
+    {% with d=sub.detalle_general %}
+    {% if d %}
+    <table class="info-grid">
+      <tr>
+        <td style="width:20%"><span class="lbl"># Caja</span><span class="val {% if not d.id_caja %}val-empty{% endif %}">{{ d.id_caja|default:"—" }}</span></td>
+        <td style="width:20%"><span class="lbl">Línea</span><span class="val {% if not d.linea %}val-empty{% endif %}">{{ d.linea|default:"—" }}</span></td>
+        <td style="width:15%"><span class="lbl">Placas</span><span class="val {% if not d.placas %}val-empty{% endif %}">{{ d.placas|default:"—" }}</span></td>
+        <td style="width:20%"><span class="lbl">Estado</span><span class="val {% if not d.estado %}val-empty{% endif %}">{{ d.estado|default:"—" }}</span></td>
+        <td style="width:25%"><span class="lbl">Chofer</span><span class="val {% if not d.chofer %}val-empty{% endif %}">{{ d.chofer|default:"—" }}</span></td>
+      </tr>
+      <tr>
+        <td><span class="lbl"># Tractor</span><span class="val {% if not d.id_tractor %}val-empty{% endif %}">{{ d.id_tractor|default:"—" }}</span></td>
+        <td><span class="lbl">Fianza</span><span class="val {% if not d.fianza %}val-empty{% endif %}">{{ d.fianza|default:"—" }}</span></td>
+        <td><span class="lbl">Año remolque</span><span class="val {% if not d.anio_remolque %}val-empty{% endif %}">{{ d.anio_remolque|default:"—" }}</span></td>
+        <td><span class="lbl">Marca remolque</span><span class="val {% if not d.marca_remolque %}val-empty{% endif %}">{{ d.marca_remolque|default:"—" }}</span></td>
+        <td><span class="lbl">VIN remolque</span><span class="val {% if not d.vin_remolque %}val-empty{% endif %}">{{ d.vin_remolque|default:"—" }}</span></td>
+      </tr>
+      <tr>
+        <td><span class="lbl">Año contenedor</span><span class="val {% if not d.anio_contenedor %}val-empty{% endif %}">{{ d.anio_contenedor|default:"—" }}</span></td>
+        <td><span class="lbl">Marca contenedor</span><span class="val {% if not d.marca_contenedor %}val-empty{% endif %}">{{ d.marca_contenedor|default:"—" }}</span></td>
+        <td><span class="lbl">VIN contenedor</span><span class="val {% if not d.vin_contenedor %}val-empty{% endif %}">{{ d.vin_contenedor|default:"—" }}</span></td>
+        <td><span class="lbl"># Sello</span><span class="val {% if not d.numero_sello %}val-empty{% endif %}">{{ d.numero_sello|default:"—" }}</span></td>
+        <td></td>
+      </tr>
+    </table>
+    {% endif %}
+    {% endwith %}
+    {% if sub.comentarios %}
+    <div class="obs-box"><div class="obs-label">Observaciones</div>{{ sub.comentarios }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}{% endfor %}
+
+<!-- ── Sección: Caja / Caja vacía en dos columnas si ambas existen ── -->
+{% with has_caja=False has_caja_vacia=False %}
+{% for sub in inspeccion.sub_inspecciones.all %}
+  {% if sub.tipo == "CAJA" or sub.tipo == "CAJA_VACIA" %}
+
+<div class="section">
+  <div class="section-header">
+    {% if sub.tipo == "CAJA" %}Inspección de caja (con carga)
+    {% else %}Inspección de caja vacía{% endif %}
+  </div>
+  <div class="section-body">
+    <table class="checklist-table">
+      <thead>
+        <tr>
+          <th class="col-item">Punto de revisión</th>
+          <th class="col-si">Bien</th>
+          <th class="col-no">Mal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if sub.tipo == "CAJA" %}{% with d=sub.detalle_caja %}{% if d %}
+        {% with items=d %}
+        <tr><td>Remaches de carga</td>
+          <td style="text-align:center">{% if d.remaches_de_carga == "SI" %}<span class="check-si">✓</span>{% elif d.remaches_de_carga == "NO" %}<span class="check-empty"></span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.remaches_de_carga == "NO" %}<span class="check-no">✗</span>{% elif d.remaches_de_carga == "SI" %}<span class="check-empty"></span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Manitas</td>
+          <td style="text-align:center">{% if d.manitas == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.manitas == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Patines</td>
+          <td style="text-align:center">{% if d.patines == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.patines == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Soqueteras</td>
+          <td style="text-align:center">{% if d.soqueteras == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.soqueteras == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Manivelas</td>
+          <td style="text-align:center">{% if d.manivelas == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.manivelas == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Golpes y rayones</td>
+          <td style="text-align:center">{% if d.golpes_y_rallones == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.golpes_y_rallones == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Reflejantes</td>
+          <td style="text-align:center">{% if d.reflejantes == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.reflejantes == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Molduras</td>
+          <td style="text-align:center">{% if d.molduras == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.molduras == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Bisagras</td>
+          <td style="text-align:center">{% if d.bisagras == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.bisagras == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Llantas sin ponchar</td>
+          <td style="text-align:center">{% if d.llantas == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.llantas == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Receptor eléctrico</td>
+          <td style="text-align:center">{% if d.receptor_electrico == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.receptor_electrico == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Luz lateral (led/normal)</td>
+          <td style="text-align:center">{% if d.luz_lateral == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.luz_lateral == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Luz trasera (led/normal)</td>
+          <td style="text-align:center">{% if d.luz_trasera == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.luz_trasera == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        {% endwith %}{% endif %}{% endwith %}
+
+        {% elif sub.tipo == "CAJA_VACIA" %}{% with d=sub.detalle_caja_vacia %}{% if d %}
+        <tr><td>Techo libre de filtraciones</td>
+          <td style="text-align:center">{% if d.techo_libre_filtraciones == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.techo_libre_filtraciones == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Libre de olores</td>
+          <td style="text-align:center">{% if d.libre_olores == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.libre_olores == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Pisos íntegros</td>
+          <td style="text-align:center">{% if d.pisos_integros == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.pisos_integros == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Paredes íntegras</td>
+          <td style="text-align:center">{% if d.paredes_integros == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.paredes_integros == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Techos íntegros</td>
+          <td style="text-align:center">{% if d.techos_integros == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.techos_integros == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Bisagras</td>
+          <td style="text-align:center">{% if d.bisagras == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.bisagras == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Mecanismos de cierre</td>
+          <td style="text-align:center">{% if d.mecanismos_de_cierre == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.mecanismos_de_cierre == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Puertas simétricas</td>
+          <td style="text-align:center">{% if d.puertas_simetricas == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.puertas_simetricas == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Parches y reparaciones</td>
+          <td style="text-align:center">{% if d.parches_y_reparaciones == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.parches_y_reparaciones == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Limpieza</td>
+          <td style="text-align:center">{% if d.limpieza == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.limpieza == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Paredes de interior</td>
+          <td style="text-align:center">{% if d.paredes_de_interior == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.paredes_de_interior == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        {% endif %}{% endwith %}
+        {% endif %}
+      </tbody>
+    </table>
+    {% if sub.comentarios %}
+    <div class="obs-box" style="margin-top:6px"><div class="obs-label">Observaciones</div>{{ sub.comentarios }}</div>
+    {% endif %}
+  </div>
+</div>
+
+  {% endif %}
+{% endfor %}
+{% endwith %}
+
+<!-- ── Sección: 19 puntos de seguridad ── -->
+{% for sub in inspeccion.sub_inspecciones.all %}{% if sub.tipo == "DIECINUEVE_PUNTOS" %}
+<div class="section">
+  <div class="section-header">19 Puntos de seguridad en tránsito</div>
+  <div class="section-body">
+    {% with d=sub.detalle_diecinueve_puntos %}{% if d %}
+    <table class="checklist-table">
+      <thead>
+        <tr>
+          <th class="col-item">Punto de revisión</th>
+          <th class="col-si">Bien</th>
+          <th class="col-no">Mal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% with fields=d %}
+        <tr><td>Defensa</td>
+          <td style="text-align:center">{% if d.defensa == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.defensa == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Llantas y rines</td>
+          <td style="text-align:center">{% if d.llantas_y_rines == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.llantas_y_rines == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Piso del tractor</td>
+          <td style="text-align:center">{% if d.piso_tractor == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.piso_tractor == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Tanque de gasolina</td>
+          <td style="text-align:center">{% if d.tanque_gasolina == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.tanque_gasolina == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Interior de cabina</td>
+          <td style="text-align:center">{% if d.interior_cabina == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.interior_cabina == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Tanques de aire</td>
+          <td style="text-align:center">{% if d.tanques_de_aire == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.tanques_de_aire == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Chasis y quinta rueda</td>
+          <td style="text-align:center">{% if d.chasis_y_quinta_rueda == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.chasis_y_quinta_rueda == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Ejes de transmisión</td>
+          <td style="text-align:center">{% if d.ejes_de_transmision == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.ejes_de_transmision == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Tubo de escape</td>
+          <td style="text-align:center">{% if d.tubo_de_escape == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.tubo_de_escape == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Motor</td>
+          <td style="text-align:center">{% if d.motor == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.motor == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Base del remolque</td>
+          <td style="text-align:center">{% if d.base_del_remolque == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.base_del_remolque == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Puertas interiores</td>
+          <td style="text-align:center">{% if d.puertas_interiores == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.puertas_interiores == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Pared lateral derecha</td>
+          <td style="text-align:center">{% if d.pared_lateral_derecha == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.pared_lateral_derecha == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Techo interno y externo</td>
+          <td style="text-align:center">{% if d.techo_interno_y_externo == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.techo_interno_y_externo == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Pared frontal</td>
+          <td style="text-align:center">{% if d.pared_frontal == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.pared_frontal == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Pared lateral izquierda</td>
+          <td style="text-align:center">{% if d.pared_lateral_izquierda == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.pared_lateral_izquierda == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Piso interno</td>
+          <td style="text-align:center">{% if d.piso_interno == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.piso_interno == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Eje palanca/patín</td>
+          <td style="text-align:center">{% if d.eje_palanca_patin == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.eje_palanca_patin == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Sistema de refrigeración</td>
+          <td style="text-align:center">{% if d.sistema_refrigeracion == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.sistema_refrigeracion == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        {% endwith %}
+      </tbody>
+    </table>
+    {% endif %}{% endwith %}
+    {% if sub.comentarios %}
+    <div class="obs-box" style="margin-top:6px"><div class="obs-label">Observaciones</div>{{ sub.comentarios }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}{% endfor %}
+
+<!-- ── Sección: Llantas ── -->
+{% for sub in inspeccion.sub_inspecciones.all %}{% if sub.tipo == "LLANTAS" %}
+<div class="section">
+  <div class="section-header">Inspección de llantas</div>
+  <div class="section-body">
+    {% with llantas=sub.llantas.all %}
+    {% if llantas %}
+    <table class="llantas-table">
+      <thead>
+        <tr>
+          <th>Posición</th>
+          <th>Cautín</th>
+          <th>Marca</th>
+          <th>Medida</th>
+          <th>Origen</th>
+          <th style="text-align:center">Validado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for llanta in llantas %}
+        <tr {% if forloop.counter|divisibleby:2 %}class="row-alt"{% endif %}>
+          <td style="font-weight:600">{{ llanta.posicion }}</td>
+          <td>{{ llanta.cautin|default:"—" }}</td>
+          <td>{{ llanta.marca|default:"—" }}</td>
+          <td>{{ llanta.medida|default:"—" }}</td>
+          <td>{{ llanta.origen|default:"—" }}</td>
+          <td style="text-align:center">
+            {% if llanta.validado %}
+              <span class="check-si validated-yes">✓</span>
+            {% else %}
+              <span class="check-no validated-no">✗</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    {% endwith %}
+    {% if sub.comentarios %}
+    <div class="obs-box" style="margin-top:6px"><div class="obs-label">Observaciones</div>{{ sub.comentarios }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}{% endfor %}
+
+<!-- ── Fila: 5 puntos / Canina / Medidas (en columnas) ── -->
+{% for sub in inspeccion.sub_inspecciones.all %}{% if sub.tipo == "CINCO_PUNTOS" %}
+<div class="section">
+  <div class="section-header">5 Puntos VVTTB</div>
+  <div class="section-body">
+    {% with d=sub.detalle_cinco_puntos %}{% if d %}
+    <table class="checklist-table">
+      <thead>
+        <tr>
+          <th class="col-item">Punto de revisión</th>
+          <th class="col-si">Bien</th>
+          <th class="col-no">Mal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Vea sellos y mecanismos</td>
+          <td style="text-align:center">{% if d.ver_sellos == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.ver_sellos == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Verifique número de sello</td>
+          <td style="text-align:center">{% if d.verificar_sello == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.verificar_sello == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Tire del sello</td>
+          <td style="text-align:center">{% if d.tirar_sello == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.tirar_sello == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr class="row-alt"><td>Tuerza y gire el sello</td>
+          <td style="text-align:center">{% if d.torcer_sello == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.torcer_sello == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+        <tr><td>Verifique bisagras aseguradas</td>
+          <td style="text-align:center">{% if d.verificar_bisagra == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.verificar_bisagra == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+        </tr>
+      </tbody>
+    </table>
+    {% endif %}{% endwith %}
+    {% if sub.comentarios %}
+    <div class="obs-box" style="margin-top:6px"><div class="obs-label">Observaciones</div>{{ sub.comentarios }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}{% endfor %}
+
+{% for sub in inspeccion.sub_inspecciones.all %}{% if sub.tipo == "CANINA" %}
+<div class="section">
+  <div class="section-header">Inspección canina</div>
+  <div class="section-body">
+    {% with d=sub.detalle_canina %}{% if d %}
+    <div style="display:flex;align-items:center;gap:12px;padding:4px 0;">
+      <span style="font-size:9pt;font-weight:600;">Resultado:</span>
+      {% if d.aprobado == "SI" %}
+        <span style="display:inline-flex;align-items:center;gap:6px;background:#dcfce7;color:#15803d;padding:4px 14px;border-radius:99px;font-weight:700;font-size:10pt;">
+          <span>✓</span> Aprobado
+        </span>
+      {% elif d.aprobado == "NO" %}
+        <span style="display:inline-flex;align-items:center;gap:6px;background:#fee2e2;color:#b91c1c;padding:4px 14px;border-radius:99px;font-weight:700;font-size:10pt;">
+          <span>✗</span> No aprobado
+        </span>
+      {% else %}
+        <span style="color:#94a3b8;">Sin registrar</span>
+      {% endif %}
+    </div>
+    {% endif %}{% endwith %}
+    {% if sub.comentarios %}
+    <div class="obs-box" style="margin-top:6px"><div class="obs-label">Observaciones</div>{{ sub.comentarios }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}{% endfor %}
+
+{% for sub in inspeccion.sub_inspecciones.all %}{% if sub.tipo == "MEDIDAS_REMOLQUE" %}
+<div class="section">
+  <div class="section-header">Medidas del remolque vacío</div>
+  <div class="section-body">
+    {% with d=sub.detalle_medidas_remolque %}{% if d %}
+    <div class="medidas-row">
+      <div class="medida-item">
+        <div class="medida-num">{{ d.largo|default:"—" }}</div>
+        <div class="medida-unit">Largo (m)</div>
+      </div>
+      <div style="border-left:1px solid #e2e8f0;height:40px;margin-top:4px;"></div>
+      <div class="medida-item">
+        <div class="medida-num">{{ d.ancho|default:"—" }}</div>
+        <div class="medida-unit">Ancho (m)</div>
+      </div>
+      <div style="border-left:1px solid #e2e8f0;height:40px;margin-top:4px;"></div>
+      <div class="medida-item">
+        <div class="medida-num">{{ d.alto|default:"—" }}</div>
+        <div class="medida-unit">Alto (m)</div>
+      </div>
+    </div>
+    {% endif %}{% endwith %}
+    {% if sub.comentarios %}
+    <div class="obs-box" style="margin-top:6px"><div class="obs-label">Observaciones</div>{{ sub.comentarios }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}{% endfor %}
+
+<!-- ── Observaciones generales de la inspección ── -->
+{% if inspeccion.observaciones %}
+<div class="obs-box" style="margin-bottom:10px;">
+  <div class="obs-label">Observaciones generales de la inspección</div>
+  {{ inspeccion.observaciones }}
+</div>
+{% endif %}
+
+<!-- ── Firmas ── -->
+<div class="firmas-row">
+  <div class="firma-box">
+    <div class="firma-space"></div>
+    <div class="firma-label">Firma del inspector</div>
+    <div style="margin-top:3px;font-size:8pt;color:#475569;">
+      {{ inspeccion.movimiento.usuario.get_full_name|default:inspeccion.movimiento.usuario.username }}
+    </div>
+  </div>
+  <div class="firma-box">
+    <div class="firma-space"></div>
+    <div class="firma-label">Firma de supervisión</div>
+  </div>
+  <div class="firma-box">
+    <div class="firma-space"></div>
+    <div class="firma-label">Firma del operador</div>
+  </div>
+</div>
+
+</body>
+</html>
