@@ -633,7 +633,7 @@ def manifiesto_movimientos(request, pk):
     movimientos = (
         manifiesto.movimientos
         .select_related("usuario", "sucursal")
-        .prefetch_related("unidad_movimientos__unidad")
+        .prefetch_related("unidad_movimientos__unidad", "inspeccion")
         .order_by("fecha_hora_evento")
     )
     return render(request, "logistica/manifiestos/movimientos.html", {
