@@ -16,6 +16,7 @@ from .views import (
     manifiestos_list,
     registrar_manifiesto,
     editar_manifiesto,
+    manifiesto_movimientos,
     inspeccion_detalle,
     sub_inspeccion_form,
     cerrar_inspeccion,
@@ -39,6 +40,7 @@ manifiestos_urls = ([
     path("", manifiestos_list, name="list"),
     path("nuevo/", registrar_manifiesto, name="create"),
     path("<int:pk>/editar/", editar_manifiesto, name="update"),
+    path("<int:pk>/movimientos/", manifiesto_movimientos, name="movimientos"),
 ], "manifiestos")
 
 urlpatterns = [

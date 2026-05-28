@@ -609,9 +609,34 @@ def manifiestos_list(request):
         .exclude(estado="CANCELADO")
         .select_related("sucursal_origen", "sucursal_destino", "usuario")
         .prefetch_related("unidad_manifiestos__unidad")
+        .annotate(total_movimientos=Count("movimientos"))
         .order_by("-created_at")
     )
     return render(request, "logistica/manifiestos/list.html", {"manifiestos": manifiestos})
+
+
+@login_required
+def manifiesto_movimientos(request, pk):
+    if not request.user.is_superuser and request.user.rol not in ("PLANEACION", "ADMIN", "CONTROL"):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+
+    manifiesto = get_object_or_404(
+        Manifiesto.objects
+        .select_related("sucursal_origen", "sucursal_destino", "usuario")
+        .prefetch_related("unidad_manifiestos__unidad"),
+        pk=pk,
+    )
+    movimientos = (
+        manifiesto.movimientos
+        .select_related("usuario", "sucursal")
+        .prefetch_related("unidad_movimientos__unidad")
+        .order_by("fecha_hora_evento")
+    )
+    return render(request, "logistica/manifiestos/movimientos.html", {
+        "manifiesto": manifiesto,
+        "movimientos": movimientos,
+    })
 
 
 @login_required

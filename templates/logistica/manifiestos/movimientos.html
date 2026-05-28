@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Movimientos — Manifiesto #{{ manifiesto.pk }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="manifiestos" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div>
+                <h1>Manifiesto #{{ manifiesto.pk }}</h1>
+                <p>{{ manifiesto.sucursal_origen.nombre }} → {{ manifiesto.sucursal_destino.nombre }}</p>
+            </div>
+            <a href="{% url 'manifiestos:list' %}" class="btn-secondary-sm">← Volver</a>
+        </header>
+
+        <section class="page-body">
+
+            <div class="manifiesto-header-card">
+                <div class="manifiesto-header-grid">
+                    <div class="manifiesto-field">
+                        <span class="manifiesto-field-label">Folio</span>
+                        <span class="manifiesto-field-value">{{ manifiesto.folio_hoja_viajera|default:"—" }}</span>
+                    </div>
+                    <div class="manifiesto-field">
+                        <span class="manifiesto-field-label">Estado</span>
+                        <span class="manifiesto-field-value">
+                            {% if manifiesto.estado == "BORRADOR" %}<span class="badge badge-gray">Borrador</span>
+                            {% elif manifiesto.estado == "CONFIRMADO" %}<span class="badge badge-green">Confirmado</span>
+                            {% elif manifiesto.estado == "EN_TRANSITO" %}<span class="badge badge-yellow">En tránsito</span>
+                            {% elif manifiesto.estado == "COMPLETADO" %}<span class="badge badge-green">Completado</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="manifiesto-field">
+                        <span class="manifiesto-field-label">Tractor</span>
+                        <span class="manifiesto-field-value">
+                            {% for um in manifiesto.unidad_manifiestos.all %}{% if um.unidad.tipo == "TRACTOR" %}{{ um.unidad.numero_economico }}{% endif %}{% empty %}—{% endfor %}
+                        </span>
+                    </div>
+                    <div class="manifiesto-field">
+                        <span class="manifiesto-field-label">Remolque</span>
+                        <span class="manifiesto-field-value">
+                            {% for um in manifiesto.unidad_manifiestos.all %}{% if um.unidad.tipo == "REMOLQUE" %}{{ um.unidad.numero_economico }}{% endif %}{% empty %}—{% endfor %}
+                        </span>
+                    </div>
+                    <div class="manifiesto-field">
+                        <span class="manifiesto-field-label">Fecha salida</span>
+                        <span class="manifiesto-field-value">{{ manifiesto.fecha_salida|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div class="manifiesto-field">
+                        <span class="manifiesto-field-label">Llegada estimada</span>
+                        <span class="manifiesto-field-value">{{ manifiesto.fecha_llegada_est|date:"d/m/Y H:i"|default:"—" }}</span>
+                    </div>
+                    <div class="manifiesto-field">
+                        <span class="manifiesto-field-label">Creado por</span>
+                        <span class="manifiesto-field-value">{{ manifiesto.usuario.get_full_name|default:manifiesto.usuario.username }}</span>
+                    </div>
+                    {% if manifiesto.observaciones %}
+                    <div class="manifiesto-field manifiesto-field--full">
+                        <span class="manifiesto-field-label">Observaciones</span>
+                        <span class="manifiesto-field-value">{{ manifiesto.observaciones }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <h2 class="timeline-heading">Línea de tiempo</h2>
+
+            {% if movimientos %}
+            <div class="timeline">
+                {% for m in movimientos %}
+                <div class="timeline-item {% if m.cancelado %}timeline-item--cancelado{% elif m.inconsistente %}timeline-item--inconsistente{% endif %}">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-meta">
+                            <span class="timeline-date">{{ m.fecha_hora_evento|date:"d/m/Y H:i" }}</span>
+                            <span class="timeline-tipo">
+                                {% if m.cancelado %}
+                                <span class="badge badge-gray">Cancelado</span>
+                                {% elif m.inconsistente %}
+                                <span class="badge badge-yellow">Inconsistente</span>
+                                {% else %}
+                                <span class="badge badge-green">OK</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="timeline-title">{{ m.get_tipo_display }}</div>
+                        <div class="timeline-details">
+                            <span>{{ m.sucursal.nombre }}</span>
+                            <span class="timeline-separator">·</span>
+                            <span>{{ m.usuario.get_full_name|default:m.usuario.username }}</span>
+                            {% for um in m.unidad_movimientos.all %}
+                            <span class="timeline-separator">·</span>
+                            <span>{{ um.unidad.get_tipo_display }}: {{ um.unidad.numero_economico }}</span>
+                            {% endfor %}
+                        </div>
+                        {% if m.observaciones %}
+                        <div class="timeline-obs">{{ m.observaciones }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>Este manifiesto no tiene movimientos registrados aún.</p>
+            </div>
+            {% endif %}
+
+        </section>
+    </main>
+</div>
+{% endblock %}

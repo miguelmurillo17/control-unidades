@@ -142,6 +142,166 @@
     text-decoration: none;
 }
 
+/* ── Badge contador (clickeable) ── */
+.badge-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #dbeafe;
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: background .15s, color .15s;
+}
+
+.badge-count:hover {
+    background: var(--color-primary);
+    color: #fff;
+    text-decoration: none;
+}
+
+/* ── Encabezado de manifiesto ── */
+.manifiesto-header-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: calc(var(--radius) * 1.5);
+    padding: 24px 28px;
+    margin-bottom: 32px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+.manifiesto-header-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px 32px;
+}
+
+.manifiesto-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.manifiesto-field--full {
+    grid-column: 1 / -1;
+}
+
+.manifiesto-field-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--color-text-muted);
+}
+
+.manifiesto-field-value {
+    font-size: 14px;
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+/* ── Línea de tiempo ── */
+.timeline-heading {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 20px;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 20px;
+}
+
+.timeline-item {
+    position: relative;
+    padding: 0 0 28px 24px;
+    border-left: 2px solid var(--color-border);
+}
+
+.timeline-item:last-child {
+    border-left-color: transparent;
+    padding-bottom: 0;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -5px;
+    top: 3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    border: 2px solid var(--color-surface);
+    box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.timeline-item--cancelado .timeline-dot {
+    background: var(--color-text-muted);
+    box-shadow: 0 0 0 2px var(--color-text-muted);
+}
+
+.timeline-item--inconsistente .timeline-dot {
+    background: #ca8a04;
+    box-shadow: 0 0 0 2px #ca8a04;
+}
+
+.timeline-content {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.timeline-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.timeline-date {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+.timeline-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.timeline-details {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+
+.timeline-separator {
+    color: var(--color-border);
+}
+
+.timeline-obs {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding-top: 4px;
+    border-top: 1px solid var(--color-border);
+}
+
 /* ── Mobile ── */
 @media (max-width: 768px) {
     .page-header-row {

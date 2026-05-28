@@ -37,6 +37,7 @@
                             <th>Remolque</th>
                             <th>Fecha salida</th>
                             <th>Estado</th>
+                            <th style="text-align:center">Movimientos</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -67,6 +68,13 @@
                                 <span class="badge badge-yellow">En tránsito</span>
                                 {% elif m.estado == "COMPLETADO" %}
                                 <span class="badge badge-green">Completado</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align:center">
+                                {% if m.total_movimientos %}
+                                <a href="{% url 'manifiestos:movimientos' m.pk %}" class="badge-count">{{ m.total_movimientos }}</a>
+                                {% else %}
+                                <span class="badge badge-gray">—</span>
                                 {% endif %}
                             </td>
                             <td class="cell-actions">
