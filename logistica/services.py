@@ -6,8 +6,8 @@ from .models import Movimiento, Unidad, UnidadMovimiento, Inspeccion, SubInspecc
 # Programar condiciones reales en una etapa posterior.
 CONDICIONES_SUB_INSPECCION = {
     "GENERAL":           lambda inspeccion: True,
-    "CAJA":              lambda inspeccion: True,
-    "CAJA_VACIA":        lambda inspeccion: True,
+    "CAJA":              lambda inspeccion: inspeccion.movimiento.estatus_caja == "CARGA",
+    "CAJA_VACIA":        lambda inspeccion: inspeccion.movimiento.estatus_caja == "VACIA",
     "LLANTAS":           lambda inspeccion: True,
     "CINCO_PUNTOS":      lambda inspeccion: True,
     "DIECINUEVE_PUNTOS": lambda inspeccion: True,
@@ -97,6 +97,7 @@ def crear_movimiento(form_data: dict, usuario) -> Movimiento:
         manifiesto=form_data.get("manifiesto"),
         fecha_hora_evento=form_data["fecha_hora_evento"],
         usuario=usuario,
+        estatus_caja=form_data.get("estatus_caja", ""),
         observaciones=form_data.get("observaciones", ""),
         inconsistente=inconsistente,
     )

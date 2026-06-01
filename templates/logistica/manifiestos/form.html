@@ -61,6 +61,17 @@
                         </div>
 
                         <div class="field">
+                            <label for="{{ form.numero_fianza.id_for_label }}">{{ form.numero_fianza.label }} <span class="field-optional">(opcional)</span></label>
+                            <input type="text"
+                                   id="{{ form.numero_fianza.id_for_label }}"
+                                   name="{{ form.numero_fianza.html_name }}"
+                                   value="{{ form.numero_fianza.value|default:'' }}"
+                                   maxlength="30"
+                                   class="{% if form.numero_fianza.errors %}input-error{% endif %}">
+                            {% if form.numero_fianza.errors %}<span class="field-error">{{ form.numero_fianza.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
                             <label for="{{ form.sucursal_origen.id_for_label }}">{{ form.sucursal_origen.label }}</label>
                             <select id="{{ form.sucursal_origen.id_for_label }}" name="{{ form.sucursal_origen.html_name }}"
                                     class="{% if form.sucursal_origen.errors %}input-error{% endif %}">

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Eliminar línea — Control de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="lineas" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <h1>Eliminar línea</h1>
+        </header>
+
+        <section class="page-body">
+            <div class="form-card">
+                <p class="confirm-text">
+                    ¿Eliminar la línea <strong>{{ object.clave }} — {{ object.nombre }}</strong>?
+                    Esta acción no se puede deshacer.
+                </p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-actions">
+                        <button type="submit" class="btn-danger">Eliminar</button>
+                        <a href="{% url 'lineas:list' %}" class="btn-secondary-sm">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

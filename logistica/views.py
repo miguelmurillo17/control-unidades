@@ -21,7 +21,7 @@ from .models import (
     DetalleGeneral, DetalleCaja, DetalleCajaVacia, DetalleCincoPuntos,
     DetalleDiecinuevePuntos, DetalleCanina, DetalleMedidasRemolque,
     RegistroLlanta, PosicionLlanta, FotoSubInspeccion, ConfiguracionInspeccion,
-    Inspeccion, Manifiesto, Movimiento, SubInspeccion, Sucursal, Unidad, UnidadManifiesto,
+    Inspeccion, Linea, Manifiesto, Movimiento, SubInspeccion, Sucursal, Unidad, UnidadManifiesto,
 )
 from .services import detectar_inconsistencias, crear_movimiento
 
@@ -29,6 +29,45 @@ from .services import detectar_inconsistencias, crear_movimiento
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.rol == "ADMIN"
+
+
+class LineaListView(AdminRequiredMixin, ListView):
+    model = Linea
+    template_name = "logistica/lineas/list.html"
+    context_object_name = "lineas"
+    ordering = ["clave"]
+
+
+class LineaCreateView(AdminRequiredMixin, CreateView):
+    model = Linea
+    template_name = "logistica/lineas/form.html"
+    fields = ["nombre", "clave", "tipo_linea", "activo"]
+    success_url = reverse_lazy("lineas:list")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["titulo"] = "Nueva línea"
+        ctx["accion"] = "Crear"
+        return ctx
+
+
+class LineaUpdateView(AdminRequiredMixin, UpdateView):
+    model = Linea
+    template_name = "logistica/lineas/form.html"
+    fields = ["nombre", "clave", "tipo_linea", "activo"]
+    success_url = reverse_lazy("lineas:list")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["titulo"] = "Editar línea"
+        ctx["accion"] = "Guardar cambios"
+        return ctx
+
+
+class LineaDeleteView(AdminRequiredMixin, DeleteView):
+    model = Linea
+    template_name = "logistica/lineas/confirm_delete.html"
+    success_url = reverse_lazy("lineas:list")
 
 
 class SucursalListView(AdminRequiredMixin, ListView):
@@ -80,7 +119,7 @@ class UnidadListView(AdminRequiredMixin, ListView):
 class UnidadCreateView(AdminRequiredMixin, CreateView):
     model = Unidad
     template_name = "logistica/unidades/form.html"
-    fields = ["numero_economico", "tipo", "sucursal_actual", "activo"]
+    fields = ["numero_economico", "vin", "linea", "tipo", "sucursal_actual", "activo"]
     success_url = reverse_lazy("unidades:list")
 
     def get_context_data(self, **kwargs):
@@ -93,7 +132,7 @@ class UnidadCreateView(AdminRequiredMixin, CreateView):
 class UnidadUpdateView(AdminRequiredMixin, UpdateView):
     model = Unidad
     template_name = "logistica/unidades/form.html"
-    fields = ["numero_economico", "tipo", "sucursal_actual", "activo"]
+    fields = ["numero_economico", "vin", "linea", "tipo", "sucursal_actual", "activo"]
     success_url = reverse_lazy("unidades:list")
 
     def get_context_data(self, **kwargs):
@@ -682,6 +721,7 @@ def registrar_manifiesto(request):
                 fecha_salida=data["fecha_salida"],
                 fecha_llegada_est=data.get("fecha_llegada_est"),
                 usuario=request.user,
+                numero_fianza=data.get("numero_fianza", ""),
                 observaciones=data.get("observaciones", ""),
             )
             for unidad in data["unidades"]:
@@ -717,6 +757,7 @@ def editar_manifiesto(request, pk):
             manifiesto.sucursal_destino   = data["sucursal_destino"]
             manifiesto.fecha_salida       = data["fecha_salida"]
             manifiesto.fecha_llegada_est  = data.get("fecha_llegada_est")
+            manifiesto.numero_fianza      = data.get("numero_fianza", "")
             manifiesto.observaciones      = data.get("observaciones", "")
             manifiesto.save()
             manifiesto.unidad_manifiestos.all().delete()
@@ -735,6 +776,7 @@ def editar_manifiesto(request, pk):
             "remolque":           remolque.pk if remolque else None,
             "fecha_salida":       fmt(manifiesto.fecha_salida),
             "fecha_llegada_est":  fmt(manifiesto.fecha_llegada_est),
+            "numero_fianza":      manifiesto.numero_fianza,
             "observaciones":      manifiesto.observaciones,
         })
 

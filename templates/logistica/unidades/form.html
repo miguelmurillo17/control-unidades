@@ -23,7 +23,7 @@
         </header>
 
         <section class="page-body">
-            <div class="form-card">
+            <div class="form-card form-card-wide">
                 <form method="post" novalidate>
                     {% csrf_token %}
 
@@ -36,6 +36,32 @@
                                    value="{{ form.numero_economico.value|default:'' }}"
                                    class="{% if form.numero_economico.errors %}input-error{% endif %}">
                             {% if form.numero_economico.errors %}<span class="field-error">{{ form.numero_economico.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.vin.id_for_label }}">VIN</label>
+                            <input type="text"
+                                   id="{{ form.vin.id_for_label }}"
+                                   name="{{ form.vin.html_name }}"
+                                   value="{{ form.vin.value|default:'' }}"
+                                   maxlength="20"
+                                   style="text-transform:uppercase"
+                                   class="{% if form.vin.errors %}input-error{% endif %}">
+                            {% if form.vin.errors %}<span class="field-error">{{ form.vin.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="{{ form.linea.id_for_label }}">Línea</label>
+                            <select id="{{ form.linea.id_for_label }}" name="{{ form.linea.html_name }}"
+                                    class="{% if form.linea.errors %}input-error{% endif %}">
+                                <option value="">— Selecciona —</option>
+                                {% for val, label in form.linea.field.choices %}
+                                {% if val %}
+                                <option value="{{ val }}" {% if form.linea.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                            {% if form.linea.errors %}<span class="field-error">{{ form.linea.errors.0 }}</span>{% endif %}
                         </div>
 
                         <div class="field">

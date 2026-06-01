@@ -13,12 +13,30 @@ class Sucursal(models.Model):
         return f'{self.nombre} ({self.ciudad})'
 
 
+class Linea(models.Model):
+    TIPOS_LINEA = [
+        ("PROPIA",   "Propia"),
+        ("EXTERNA",  "Externa"),
+    ]
+    nombre     = models.CharField(max_length=200)
+    clave      = models.CharField(max_length=20, unique=True)
+    tipo_linea = models.CharField(max_length=10, choices=TIPOS_LINEA)
+    activo     = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.clave} — {self.nombre}'
+
+
 class Unidad(models.Model):
     TIPO_CHOICES = [
         ("TRACTOR",  "Tractor"),
         ("REMOLQUE", "Remolque"),
     ]
     numero_economico = models.CharField("Número económico", max_length=50, unique=True)
+    vin              = models.CharField("VIN", max_length=20, unique=True)
+    linea            = models.ForeignKey(Linea, on_delete=models.PROTECT, null=True)
     tipo             = models.CharField(max_length=20, choices=TIPO_CHOICES)
     sucursal_actual  = models.ForeignKey(
         Sucursal, null=True, blank=True, on_delete=models.SET_NULL
@@ -48,6 +66,11 @@ class Movimiento(models.Model):
     fecha_hora_evento     = models.DateTimeField()
     fecha_hora_registro   = models.DateTimeField(auto_now_add=True)
     usuario               = models.ForeignKey(Usuario,    on_delete=models.PROTECT)
+    ESTATUS_CAJA_CHOICES = [
+        ("CARGA", "Cargada"),
+        ("VACIA", "Vacía"),
+    ]
+    estatus_caja          = models.CharField("Estatus de caja", max_length=5, choices=ESTATUS_CAJA_CHOICES, blank=True)
     observaciones         = models.TextField(blank=True)
     inconsistente         = models.BooleanField(default=False)
     cancelado             = models.BooleanField(default=False)
@@ -84,6 +107,7 @@ class Manifiesto(models.Model):
     fecha_salida      = models.DateTimeField()
     fecha_llegada_est = models.DateTimeField(null=True, blank=True)
     usuario           = models.ForeignKey(Usuario, on_delete=models.PROTECT)
+    numero_fianza     = models.CharField("Número de fianza", max_length=30, blank=True)
     observaciones     = models.TextField(blank=True)
     created_at        = models.DateTimeField(auto_now_add=True)
 
@@ -236,13 +260,9 @@ class FotoSubInspeccion(models.Model):
 
 class DetalleGeneral(models.Model):
     sub_inspeccion   = models.OneToOneField(SubInspeccion, on_delete=models.CASCADE, related_name="detalle_general")
-    id_caja          = models.CharField("# Caja",       max_length=50,  blank=True)
-    linea            = models.CharField("Línea",         max_length=100, blank=True)
     placas           = models.CharField(                 max_length=20,  blank=True)
     estado           = models.CharField(                 max_length=100, blank=True)
     chofer           = models.CharField(                 max_length=100, blank=True)
-    id_tractor       = models.CharField("# Tractor",   max_length=50,  blank=True)
-    fianza           = models.CharField(                 max_length=100, blank=True)
     anio_remolque     = models.PositiveSmallIntegerField("Año remolque",    null=True, blank=True)
     vin_remolque     = models.CharField("VIN remolque",  max_length=50,  blank=True)
     marca_remolque   = models.ForeignKey(

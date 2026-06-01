@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Líneas — Control de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {% include "partials/sidebar.html" with active_nav="lineas" %}
+
+    <main class="main-content">
+        <header class="page-header">
+            <div class="page-header-row">
+                <div>
+                    <h1>Líneas</h1>
+                    <p>Catálogo de líneas propias y externas</p>
+                </div>
+                <a href="{% url 'lineas:create' %}" class="btn-primary-sm">+ Nueva línea</a>
+            </div>
+        </header>
+
+        <section class="page-body">
+            {% if lineas %}
+            <div class="table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Clave</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for l in lineas %}
+                        <tr>
+                            <td class="cell-primary">{{ l.clave }}</td>
+                            <td>{{ l.nombre }}</td>
+                            <td>{{ l.get_tipo_linea_display }}</td>
+                            <td>
+                                {% if l.activo %}
+                                <span class="badge badge-green">Activa</span>
+                                {% else %}
+                                <span class="badge badge-gray">Inactiva</span>
+                                {% endif %}
+                            </td>
+                            <td class="cell-actions">
+                                <a href="{% url 'lineas:update' l.pk %}" class="action-link">Editar</a>
+                                <a href="{% url 'lineas:delete' l.pk %}" class="action-link action-link-danger">Eliminar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No hay líneas registradas.</p>
+                <a href="{% url 'lineas:create' %}" class="btn-primary-sm" style="margin-top:12px">Crear la primera</a>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}

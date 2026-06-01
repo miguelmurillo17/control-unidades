@@ -60,6 +60,7 @@
                     <input type="hidden" name="tipo" value="{{ form.tipo.value }}">
                     <input type="hidden" name="sucursal" value="{{ form.sucursal.value }}">
                     <input type="hidden" name="fecha_hora_evento" value="{{ form.fecha_hora_evento.value }}">
+                    <input type="hidden" name="estatus_caja" value="{{ form.estatus_caja.value|default:'' }}">
                     <input type="hidden" name="observaciones" value="{{ form.observaciones.value|default:'' }}">
                     <input type="hidden" name="confirmar" value="1">
                     <a href="{% url 'registrar_movimiento' %}" class="btn-secondary-sm">Cancelar</a>
@@ -145,6 +146,17 @@
                         </div>
 
                         <div class="field">
+                            <label for="{{ form.estatus_caja.id_for_label }}">{{ form.estatus_caja.label }}</label>
+                            <select id="{{ form.estatus_caja.id_for_label }}" name="{{ form.estatus_caja.html_name }}"
+                                    class="{% if form.estatus_caja.errors %}input-error{% endif %}">
+                                <option value="">— Selecciona —</option>
+                                <option value="CARGA" {% if form.estatus_caja.value == 'CARGA' %}selected{% endif %}>Carga</option>
+                                <option value="VACIA" {% if form.estatus_caja.value == 'VACIA' %}selected{% endif %}>Vacía</option>
+                            </select>
+                            {% if form.estatus_caja.errors %}<span class="field-error">{{ form.estatus_caja.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
                             <label for="{{ form.fecha_hora_evento.id_for_label }}">{{ form.fecha_hora_evento.label }}</label>
                             <input type="datetime-local"
                                    id="{{ form.fecha_hora_evento.id_for_label }}"
@@ -172,4 +184,5 @@
         </section>
     </main>
 </div>
+
 {% endblock %}

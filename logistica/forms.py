@@ -54,6 +54,10 @@ class MovimientoForm(forms.Form):
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
         input_formats=["%Y-%m-%dT%H:%M"],
     )
+    estatus_caja = forms.ChoiceField(
+        label="Estatus de caja",
+        choices=[("", "— Selecciona —"), ("CARGA", "Carga"), ("VACIA", "Vacía")],
+    )
     observaciones = forms.CharField(
         label="Observaciones",
         required=False,
@@ -82,6 +86,11 @@ class ManifiestoForm(forms.Form):
     folio_hoja_viajera = forms.CharField(
         label="Folio hoja viajera",
         max_length=50,
+    )
+    numero_fianza = forms.CharField(
+        label="Número de fianza",
+        max_length=30,
+        required=False,
     )
     tractor = forms.ModelChoiceField(
         queryset=Unidad.objects.filter(activo=True, tipo="TRACTOR").order_by("numero_economico"),
@@ -152,8 +161,8 @@ class SubInspeccionForm(forms.ModelForm):
 
 class DetalleGeneralForm(forms.ModelForm):
     required_for_completada = [
-        "id_caja", "linea", "placas", "estado", "chofer",
-        "id_tractor", "fianza", "numero_sello",
+        "placas", "estado", "chofer",
+        "numero_sello",
         "anio_remolque", "vin_remolque", "marca_remolque",
         "anio_contenedor", "vin_contenedor", "marca_contenedor",
     ]
@@ -183,7 +192,7 @@ class DetalleGeneralForm(forms.ModelForm):
     class Meta:
         model  = DetalleGeneral
         fields = [
-            "id_caja", "linea", "placas", "estado", "chofer", "id_tractor", "fianza",
+            "placas", "estado", "chofer",
             "anio_remolque", "vin_remolque", "marca_remolque",
             "anio_contenedor", "vin_contenedor", "marca_contenedor",
             "numero_sello",

@@ -142,26 +142,16 @@
   .checklist-table {
     width: 100%;
     border-collapse: collapse;
-  }
-  .checklist-table th {
-    font-size: 7pt;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #64748b;
-    padding: 3px 8px;
-    background: #f1f5f9;
-    border-bottom: 1px solid #e2e8f0;
-    letter-spacing: 0.3px;
+    direction: rtl;
   }
   .checklist-table td {
     padding: 3.5px 8px;
     border-bottom: 1px solid #f1f5f9;
     font-size: 8.5pt;
+    direction: ltr;
   }
   .checklist-table tr:last-child td { border-bottom: none; }
-  .checklist-table .col-item { width: 75%; }
-  .checklist-table .col-si   { width: 12.5%; text-align: center; }
-  .checklist-table .col-no   { width: 12.5%; text-align: center; }
+  .checklist-table td:nth-child(2) { width: 28px; text-align: center; padding: 3.5px 4px; }
 
   .check-si {
     display: inline-block;
@@ -357,18 +347,16 @@
     {% if d %}
     <table class="info-grid">
       <tr>
-        <td style="width:20%"><span class="lbl"># Caja</span><span class="val {% if not d.id_caja %}val-empty{% endif %}">{{ d.id_caja|default:"—" }}</span></td>
-        <td style="width:20%"><span class="lbl">Línea</span><span class="val {% if not d.linea %}val-empty{% endif %}">{{ d.linea|default:"—" }}</span></td>
-        <td style="width:15%"><span class="lbl">Placas</span><span class="val {% if not d.placas %}val-empty{% endif %}">{{ d.placas|default:"—" }}</span></td>
+        <td style="width:25%"><span class="lbl">Placas</span><span class="val {% if not d.placas %}val-empty{% endif %}">{{ d.placas|default:"—" }}</span></td>
         <td style="width:20%"><span class="lbl">Estado</span><span class="val {% if not d.estado %}val-empty{% endif %}">{{ d.estado|default:"—" }}</span></td>
-        <td style="width:25%"><span class="lbl">Chofer</span><span class="val {% if not d.chofer %}val-empty{% endif %}">{{ d.chofer|default:"—" }}</span></td>
+        <td style="width:20%"><span class="lbl">Chofer</span><span class="val {% if not d.chofer %}val-empty{% endif %}">{{ d.chofer|default:"—" }}</span></td>
+        <td style="width:20%"><span class="lbl">Estatus caja</span><span class="val {% if not inspeccion.movimiento.estatus_caja %}val-empty{% endif %}">{{ inspeccion.movimiento.get_estatus_caja_display|default:"—" }}</span></td>
       </tr>
       <tr>
-        <td><span class="lbl"># Tractor</span><span class="val {% if not d.id_tractor %}val-empty{% endif %}">{{ d.id_tractor|default:"—" }}</span></td>
-        <td><span class="lbl">Fianza</span><span class="val {% if not d.fianza %}val-empty{% endif %}">{{ d.fianza|default:"—" }}</span></td>
         <td><span class="lbl">Año remolque</span><span class="val {% if not d.anio_remolque %}val-empty{% endif %}">{{ d.anio_remolque|default:"—" }}</span></td>
         <td><span class="lbl">Marca remolque</span><span class="val {% if not d.marca_remolque %}val-empty{% endif %}">{{ d.marca_remolque|default:"—" }}</span></td>
         <td><span class="lbl">VIN remolque</span><span class="val {% if not d.vin_remolque %}val-empty{% endif %}">{{ d.vin_remolque|default:"—" }}</span></td>
+        <td></td><td></td>
       </tr>
       <tr>
         <td><span class="lbl">Año contenedor</span><span class="val {% if not d.anio_contenedor %}val-empty{% endif %}">{{ d.anio_contenedor|default:"—" }}</span></td>
@@ -399,114 +387,84 @@
   </div>
   <div class="section-body">
     <table class="checklist-table">
-      <thead>
-        <tr>
-          <th class="col-item">Punto de revisión</th>
-          <th class="col-si">Bien</th>
-          <th class="col-no">Mal</th>
-        </tr>
-      </thead>
+
       <tbody>
         {% if sub.tipo == "CAJA" %}{% with d=sub.detalle_caja %}{% if d %}
         {% with items=d %}
         <tr><td>Remaches de carga</td>
-          <td style="text-align:center">{% if d.remaches_de_carga == "SI" %}<span class="check-si">✓</span>{% elif d.remaches_de_carga == "NO" %}<span class="check-empty"></span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.remaches_de_carga == "NO" %}<span class="check-no">✗</span>{% elif d.remaches_de_carga == "SI" %}<span class="check-empty"></span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.remaches_de_carga == "SI" %}<span class="check-si">✓</span>{% elif d.remaches_de_carga == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Manitas</td>
-          <td style="text-align:center">{% if d.manitas == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.manitas == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.manitas == "SI" %}<span class="check-si">✓</span>{% elif d.manitas == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Patines</td>
-          <td style="text-align:center">{% if d.patines == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.patines == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.patines == "SI" %}<span class="check-si">✓</span>{% elif d.patines == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Soqueteras</td>
-          <td style="text-align:center">{% if d.soqueteras == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.soqueteras == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.soqueteras == "SI" %}<span class="check-si">✓</span>{% elif d.soqueteras == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Manivelas</td>
-          <td style="text-align:center">{% if d.manivelas == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.manivelas == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.manivelas == "SI" %}<span class="check-si">✓</span>{% elif d.manivelas == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Golpes y rayones</td>
-          <td style="text-align:center">{% if d.golpes_y_rallones == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.golpes_y_rallones == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.golpes_y_rallones == "SI" %}<span class="check-si">✓</span>{% elif d.golpes_y_rallones == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Reflejantes</td>
-          <td style="text-align:center">{% if d.reflejantes == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.reflejantes == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.reflejantes == "SI" %}<span class="check-si">✓</span>{% elif d.reflejantes == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Molduras</td>
-          <td style="text-align:center">{% if d.molduras == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.molduras == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.molduras == "SI" %}<span class="check-si">✓</span>{% elif d.molduras == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Bisagras</td>
-          <td style="text-align:center">{% if d.bisagras == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.bisagras == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.bisagras == "SI" %}<span class="check-si">✓</span>{% elif d.bisagras == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Llantas sin ponchar</td>
-          <td style="text-align:center">{% if d.llantas == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.llantas == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.llantas == "SI" %}<span class="check-si">✓</span>{% elif d.llantas == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Receptor eléctrico</td>
-          <td style="text-align:center">{% if d.receptor_electrico == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.receptor_electrico == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.receptor_electrico == "SI" %}<span class="check-si">✓</span>{% elif d.receptor_electrico == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Luz lateral (led/normal)</td>
-          <td style="text-align:center">{% if d.luz_lateral == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.luz_lateral == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.luz_lateral == "SI" %}<span class="check-si">✓</span>{% elif d.luz_lateral == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Luz trasera (led/normal)</td>
-          <td style="text-align:center">{% if d.luz_trasera == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.luz_trasera == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.luz_trasera == "SI" %}<span class="check-si">✓</span>{% elif d.luz_trasera == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         {% endwith %}{% endif %}{% endwith %}
 
         {% elif sub.tipo == "CAJA_VACIA" %}{% with d=sub.detalle_caja_vacia %}{% if d %}
         <tr><td>Techo libre de filtraciones</td>
-          <td style="text-align:center">{% if d.techo_libre_filtraciones == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.techo_libre_filtraciones == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.techo_libre_filtraciones == "SI" %}<span class="check-si">✓</span>{% elif d.techo_libre_filtraciones == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Libre de olores</td>
-          <td style="text-align:center">{% if d.libre_olores == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.libre_olores == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.libre_olores == "SI" %}<span class="check-si">✓</span>{% elif d.libre_olores == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Pisos íntegros</td>
-          <td style="text-align:center">{% if d.pisos_integros == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.pisos_integros == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.pisos_integros == "SI" %}<span class="check-si">✓</span>{% elif d.pisos_integros == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Paredes íntegras</td>
-          <td style="text-align:center">{% if d.paredes_integros == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.paredes_integros == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.paredes_integros == "SI" %}<span class="check-si">✓</span>{% elif d.paredes_integros == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Techos íntegros</td>
-          <td style="text-align:center">{% if d.techos_integros == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.techos_integros == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.techos_integros == "SI" %}<span class="check-si">✓</span>{% elif d.techos_integros == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Bisagras</td>
-          <td style="text-align:center">{% if d.bisagras == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.bisagras == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.bisagras == "SI" %}<span class="check-si">✓</span>{% elif d.bisagras == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Mecanismos de cierre</td>
-          <td style="text-align:center">{% if d.mecanismos_de_cierre == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.mecanismos_de_cierre == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.mecanismos_de_cierre == "SI" %}<span class="check-si">✓</span>{% elif d.mecanismos_de_cierre == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Puertas simétricas</td>
-          <td style="text-align:center">{% if d.puertas_simetricas == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.puertas_simetricas == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.puertas_simetricas == "SI" %}<span class="check-si">✓</span>{% elif d.puertas_simetricas == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Parches y reparaciones</td>
-          <td style="text-align:center">{% if d.parches_y_reparaciones == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.parches_y_reparaciones == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.parches_y_reparaciones == "SI" %}<span class="check-si">✓</span>{% elif d.parches_y_reparaciones == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Limpieza</td>
-          <td style="text-align:center">{% if d.limpieza == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.limpieza == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.limpieza == "SI" %}<span class="check-si">✓</span>{% elif d.limpieza == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Paredes de interior</td>
-          <td style="text-align:center">{% if d.paredes_de_interior == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.paredes_de_interior == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.paredes_de_interior == "SI" %}<span class="check-si">✓</span>{% elif d.paredes_de_interior == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         {% endif %}{% endwith %}
         {% endif %}
@@ -529,90 +487,65 @@
   <div class="section-body">
     {% with d=sub.detalle_diecinueve_puntos %}{% if d %}
     <table class="checklist-table">
-      <thead>
-        <tr>
-          <th class="col-item">Punto de revisión</th>
-          <th class="col-si">Bien</th>
-          <th class="col-no">Mal</th>
-        </tr>
-      </thead>
+
       <tbody>
         {% with fields=d %}
         <tr><td>Defensa</td>
-          <td style="text-align:center">{% if d.defensa == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.defensa == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.defensa == "SI" %}<span class="check-si">✓</span>{% elif d.defensa == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Llantas y rines</td>
-          <td style="text-align:center">{% if d.llantas_y_rines == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.llantas_y_rines == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.llantas_y_rines == "SI" %}<span class="check-si">✓</span>{% elif d.llantas_y_rines == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Piso del tractor</td>
-          <td style="text-align:center">{% if d.piso_tractor == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.piso_tractor == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.piso_tractor == "SI" %}<span class="check-si">✓</span>{% elif d.piso_tractor == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Tanque de gasolina</td>
-          <td style="text-align:center">{% if d.tanque_gasolina == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.tanque_gasolina == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.tanque_gasolina == "SI" %}<span class="check-si">✓</span>{% elif d.tanque_gasolina == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Interior de cabina</td>
-          <td style="text-align:center">{% if d.interior_cabina == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.interior_cabina == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.interior_cabina == "SI" %}<span class="check-si">✓</span>{% elif d.interior_cabina == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Tanques de aire</td>
-          <td style="text-align:center">{% if d.tanques_de_aire == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.tanques_de_aire == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.tanques_de_aire == "SI" %}<span class="check-si">✓</span>{% elif d.tanques_de_aire == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Chasis y quinta rueda</td>
-          <td style="text-align:center">{% if d.chasis_y_quinta_rueda == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.chasis_y_quinta_rueda == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.chasis_y_quinta_rueda == "SI" %}<span class="check-si">✓</span>{% elif d.chasis_y_quinta_rueda == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Ejes de transmisión</td>
-          <td style="text-align:center">{% if d.ejes_de_transmision == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.ejes_de_transmision == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.ejes_de_transmision == "SI" %}<span class="check-si">✓</span>{% elif d.ejes_de_transmision == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Tubo de escape</td>
-          <td style="text-align:center">{% if d.tubo_de_escape == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.tubo_de_escape == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.tubo_de_escape == "SI" %}<span class="check-si">✓</span>{% elif d.tubo_de_escape == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Motor</td>
-          <td style="text-align:center">{% if d.motor == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.motor == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.motor == "SI" %}<span class="check-si">✓</span>{% elif d.motor == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Base del remolque</td>
-          <td style="text-align:center">{% if d.base_del_remolque == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.base_del_remolque == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.base_del_remolque == "SI" %}<span class="check-si">✓</span>{% elif d.base_del_remolque == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Puertas interiores</td>
-          <td style="text-align:center">{% if d.puertas_interiores == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.puertas_interiores == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.puertas_interiores == "SI" %}<span class="check-si">✓</span>{% elif d.puertas_interiores == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Pared lateral derecha</td>
-          <td style="text-align:center">{% if d.pared_lateral_derecha == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.pared_lateral_derecha == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.pared_lateral_derecha == "SI" %}<span class="check-si">✓</span>{% elif d.pared_lateral_derecha == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Techo interno y externo</td>
-          <td style="text-align:center">{% if d.techo_interno_y_externo == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.techo_interno_y_externo == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.techo_interno_y_externo == "SI" %}<span class="check-si">✓</span>{% elif d.techo_interno_y_externo == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Pared frontal</td>
-          <td style="text-align:center">{% if d.pared_frontal == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.pared_frontal == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.pared_frontal == "SI" %}<span class="check-si">✓</span>{% elif d.pared_frontal == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Pared lateral izquierda</td>
-          <td style="text-align:center">{% if d.pared_lateral_izquierda == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.pared_lateral_izquierda == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.pared_lateral_izquierda == "SI" %}<span class="check-si">✓</span>{% elif d.pared_lateral_izquierda == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Piso interno</td>
-          <td style="text-align:center">{% if d.piso_interno == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.piso_interno == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.piso_interno == "SI" %}<span class="check-si">✓</span>{% elif d.piso_interno == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Eje palanca/patín</td>
-          <td style="text-align:center">{% if d.eje_palanca_patin == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.eje_palanca_patin == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.eje_palanca_patin == "SI" %}<span class="check-si">✓</span>{% elif d.eje_palanca_patin == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Sistema de refrigeración</td>
-          <td style="text-align:center">{% if d.sistema_refrigeracion == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.sistema_refrigeracion == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.sistema_refrigeracion == "SI" %}<span class="check-si">✓</span>{% elif d.sistema_refrigeracion == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         {% endwith %}
       </tbody>
@@ -678,33 +611,22 @@
   <div class="section-body">
     {% with d=sub.detalle_cinco_puntos %}{% if d %}
     <table class="checklist-table">
-      <thead>
-        <tr>
-          <th class="col-item">Punto de revisión</th>
-          <th class="col-si">Bien</th>
-          <th class="col-no">Mal</th>
-        </tr>
-      </thead>
+
       <tbody>
         <tr><td>Vea sellos y mecanismos</td>
-          <td style="text-align:center">{% if d.ver_sellos == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.ver_sellos == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.ver_sellos == "SI" %}<span class="check-si">✓</span>{% elif d.ver_sellos == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Verifique número de sello</td>
-          <td style="text-align:center">{% if d.verificar_sello == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.verificar_sello == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.verificar_sello == "SI" %}<span class="check-si">✓</span>{% elif d.verificar_sello == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Tire del sello</td>
-          <td style="text-align:center">{% if d.tirar_sello == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.tirar_sello == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.tirar_sello == "SI" %}<span class="check-si">✓</span>{% elif d.tirar_sello == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr class="row-alt"><td>Tuerza y gire el sello</td>
-          <td style="text-align:center">{% if d.torcer_sello == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.torcer_sello == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.torcer_sello == "SI" %}<span class="check-si">✓</span>{% elif d.torcer_sello == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
         <tr><td>Verifique bisagras aseguradas</td>
-          <td style="text-align:center">{% if d.verificar_bisagra == "SI" %}<span class="check-si">✓</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
-          <td style="text-align:center">{% if d.verificar_bisagra == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
+          <td style="text-align:center">{% if d.verificar_bisagra == "SI" %}<span class="check-si">✓</span>{% elif d.verificar_bisagra == "NO" %}<span class="check-no">✗</span>{% else %}<span class="check-empty"></span>{% endif %}</td>
         </tr>
       </tbody>
     </table>

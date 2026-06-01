@@ -10,7 +10,7 @@
 
 {% block body %}
 <div class="app-layout">
-    {% include "partials/sidebar.html" with active_nav="sucursales" %}
+    {% include "partials/sidebar.html" with active_nav="lineas" %}
 
     <main class="main-content">
         <header class="page-header">
@@ -18,7 +18,7 @@
                 <div>
                     <h1>{{ titulo }}</h1>
                 </div>
-                <a href="{% url 'sucursales:list' %}" class="btn-secondary-sm">Cancelar</a>
+                <a href="{% url 'lineas:list' %}" class="btn-secondary-sm">Cancelar</a>
             </div>
         </header>
 
@@ -29,6 +29,15 @@
 
                     <div class="form-grid">
                         <div class="field">
+                            <label for="{{ form.clave.id_for_label }}">Clave</label>
+                            <input type="text" id="{{ form.clave.id_for_label }}"
+                                   name="{{ form.clave.html_name }}"
+                                   value="{{ form.clave.value|default:'' }}"
+                                   class="{% if form.clave.errors %}input-error{% endif %}">
+                            {% if form.clave.errors %}<span class="field-error">{{ form.clave.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="field">
                             <label for="{{ form.nombre.id_for_label }}">Nombre</label>
                             <input type="text" id="{{ form.nombre.id_for_label }}"
                                    name="{{ form.nombre.html_name }}"
@@ -38,20 +47,17 @@
                         </div>
 
                         <div class="field">
-                            <label for="{{ form.ciudad.id_for_label }}">Ciudad</label>
-                            <input type="text" id="{{ form.ciudad.id_for_label }}"
-                                   name="{{ form.ciudad.html_name }}"
-                                   value="{{ form.ciudad.value|default:'' }}"
-                                   class="{% if form.ciudad.errors %}input-error{% endif %}">
-                            {% if form.ciudad.errors %}<span class="field-error">{{ form.ciudad.errors.0 }}</span>{% endif %}
-                        </div>
-
-                        <div class="field">
-                            <label for="{{ form.tipo.id_for_label }}">Tipo <span class="field-optional">(opcional)</span></label>
-                            <input type="text" id="{{ form.tipo.id_for_label }}"
-                                   name="{{ form.tipo.html_name }}"
-                                   value="{{ form.tipo.value|default:'' }}"
-                                   placeholder="Ej. Central, Foránea, Taller…">
+                            <label for="{{ form.tipo_linea.id_for_label }}">Tipo</label>
+                            <select id="{{ form.tipo_linea.id_for_label }}" name="{{ form.tipo_linea.html_name }}"
+                                    class="{% if form.tipo_linea.errors %}input-error{% endif %}">
+                                <option value="">— Selecciona —</option>
+                                {% for val, label in form.tipo_linea.field.choices %}
+                                {% if val %}
+                                <option value="{{ val }}" {% if form.tipo_linea.value == val %}selected{% endif %}>{{ label }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                            {% if form.tipo_linea.errors %}<span class="field-error">{{ form.tipo_linea.errors.0 }}</span>{% endif %}
                         </div>
 
                         <div class="field field-checkbox">
@@ -59,7 +65,7 @@
                                 <input type="checkbox" id="{{ form.activo.id_for_label }}"
                                        name="{{ form.activo.html_name }}"
                                        {% if form.activo.value %}checked{% endif %}>
-                                Sucursal activa
+                                Línea activa
                             </label>
                         </div>
                     </div>

@@ -1,6 +1,10 @@
 from django.urls import include, path
 
 from .views import (
+    LineaListView,
+    LineaCreateView,
+    LineaUpdateView,
+    LineaDeleteView,
     SucursalListView,
     SucursalCreateView,
     SucursalUpdateView,
@@ -22,6 +26,13 @@ from .views import (
     sub_inspeccion_form,
     cerrar_inspeccion,
 )
+
+lineas_urls = ([
+    path("", LineaListView.as_view(), name="list"),
+    path("nueva/", LineaCreateView.as_view(), name="create"),
+    path("<int:pk>/editar/", LineaUpdateView.as_view(), name="update"),
+    path("<int:pk>/eliminar/", LineaDeleteView.as_view(), name="delete"),
+], "lineas")
 
 sucursales_urls = ([
     path("", SucursalListView.as_view(), name="list"),
@@ -45,6 +56,7 @@ manifiestos_urls = ([
 ], "manifiestos")
 
 urlpatterns = [
+    path("lineas/", include(lineas_urls)),
     path("sucursales/", include(sucursales_urls)),
     path("unidades/", include(unidades_urls)),
     path("manifiestos/", include(manifiestos_urls)),

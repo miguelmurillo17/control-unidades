@@ -147,6 +147,14 @@
 
             <transition name="submenu">
                 <div v-show="catalogosOpen" class="nav-submenu">
+                    <a href="{% url 'lineas:list' %}" class="nav-item nav-subitem {% if active_nav == 'lineas' %}active{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+                            <line x1="4" y1="22" x2="4" y2="15"/>
+                        </svg>
+                        Líneas
+                    </a>
                     <a href="{% url 'unidades:list' %}" class="nav-item nav-subitem {% if active_nav == 'unidades' %}active{% endif %}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -246,7 +254,7 @@
 const { createApp } = Vue;
 const PLANEACION_KEYS  = ['manifiestos', 'nuevo_manifiesto'];
 const SUPERVISION_KEYS = ['resumen', 'estado', 'mis_registros', 'todos_los_registros'];
-const CATALOGOS_KEYS   = ['unidades', 'sucursales', 'usuarios'];
+const CATALOGOS_KEYS   = ['lineas', 'unidades', 'sucursales', 'usuarios'];
 const ADMIN_KEYS       = ['estado', 'resumen'];
 createApp({
     data() {
