@@ -35,15 +35,26 @@
                 </div>
                 {% endif %}
 
-                <!-- Datos de la unidad -->
+                <!-- Datos generales -->
                 <div class="form-section">
-                    <h2 class="form-section-title">Datos de la unidad</h2>
+                    <h2 class="form-section-title">Datos generales</h2>
+                    <div class="form-card form-card-wide">
+                        <div class="form-grid">
+
+                            {% include "logistica/inspecciones/_field.html" with field=detalle_form.chofer %}
+
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Datos de la caja -->
+                <div class="form-section">
+                    <h2 class="form-section-title">Datos de la caja</h2>
                     <div class="form-card form-card-wide">
                         <div class="form-grid">
 
                             {% include "logistica/inspecciones/_field.html" with field=detalle_form.placas %}
                             {% include "logistica/inspecciones/_field.html" with field=detalle_form.estado %}
-                            {% include "logistica/inspecciones/_field.html" with field=detalle_form.chofer %}
                             {% include "logistica/inspecciones/_field.html" with field=detalle_form.numero_sello %}
 
                         </div>

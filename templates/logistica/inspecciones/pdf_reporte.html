@@ -573,7 +573,6 @@
           <th>Marca</th>
           <th>Medida</th>
           <th>Origen</th>
-          <th style="text-align:center">Validado</th>
         </tr>
       </thead>
       <tbody>
@@ -584,13 +583,6 @@
           <td>{{ llanta.marca|default:"—" }}</td>
           <td>{{ llanta.medida|default:"—" }}</td>
           <td>{{ llanta.origen|default:"—" }}</td>
-          <td style="text-align:center">
-            {% if llanta.validado %}
-              <span class="check-si validated-yes">✓</span>
-            {% else %}
-              <span class="check-no validated-no">✗</span>
-            {% endif %}
-          </td>
         </tr>
         {% endfor %}
       </tbody>

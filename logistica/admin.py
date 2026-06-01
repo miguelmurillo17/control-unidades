@@ -109,7 +109,7 @@ class FotoSubInspeccionInline(admin.TabularInline):
 class RegistroLlantaInline(admin.TabularInline):
     model  = RegistroLlanta
     extra  = 0
-    fields = ("posicion", "cautin", "marca", "medida", "origen", "validado")
+    fields = ("posicion", "cautin", "marca", "medida", "origen")
 
 
 @admin.register(SubInspeccion)

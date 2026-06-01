@@ -324,7 +324,6 @@ class RegistroLlanta(models.Model):
     marca          = models.ForeignKey(Marca, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
     medida         = models.ForeignKey(MedidaLlanta, null=True, blank=True, on_delete=models.SET_NULL)
     origen         = models.CharField(max_length=100, blank=True)
-    validado       = models.BooleanField(default=False)
 
     class Meta:
         unique_together = [("sub_inspeccion", "posicion")]

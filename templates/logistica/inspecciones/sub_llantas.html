@@ -48,7 +48,6 @@
                                     <th class="lt-header">Marca</th>
                                     <th class="lt-header">Medida</th>
                                     <th class="lt-header">Origen</th>
-                                    <th class="lt-header lt-center">Validado</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -106,30 +105,10 @@
                                                style="text-transform:uppercase">
                                         {% if form.origen.errors %}<span class="field-error">{{ form.origen.errors.0 }}</span>{% endif %}
                                     </td>
-                                    <td class="lt-cell lt-center">
-                                        {% with val=form.validado.value %}
-                                        <div class="lt-radio-group">
-                                            <label class="lt-radio">
-                                                <input type="radio"
-                                                       name="{{ form.validado.html_name }}"
-                                                       value="1"
-                                                       {% if val == "1" %}checked{% endif %}>
-                                                <span>Sí</span>
-                                            </label>
-                                            <label class="lt-radio">
-                                                <input type="radio"
-                                                       name="{{ form.validado.html_name }}"
-                                                       value="0"
-                                                       {% if val != "1" %}checked{% endif %}>
-                                                <span>No</span>
-                                            </label>
-                                        </div>
-                                        {% endwith %}
-                                    </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="6" class="lt-cell" style="text-align:center;color:var(--color-text-muted)">
+                                    <td colspan="5" class="lt-cell" style="text-align:center;color:var(--color-text-muted)">
                                         No hay posiciones de llanta configuradas.
                                     </td>
                                 </tr>

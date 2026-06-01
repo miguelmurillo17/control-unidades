@@ -288,27 +288,13 @@ class DetalleMedidasRemolqueForm(forms.ModelForm):
 
 
 class RegistroLlantaForm(forms.ModelForm):
-    _VALIDADO = [("1", "Sí"), ("0", "No")]
-    validado = forms.TypedChoiceField(
-        choices=_VALIDADO,
-        coerce=lambda x: x == "1",
-        required=False,
-        label="Validado",
-        initial="0",
-    )
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["marca"].queryset   = Marca.objects.filter(aplica_llanta=True, activo=True)
-        self.fields["medida"].queryset  = MedidaLlanta.objects.all()
-        self.fields["marca"].required   = False
-        self.fields["medida"].required  = False
-        # Represent the stored boolean as the string the TypedChoiceField expects
-        if self.instance and self.instance.pk is not None:
-            self.initial["validado"] = "1" if self.instance.validado else "0"
-        else:
-            self.initial["validado"] = "0"
+        self.fields["marca"].queryset  = Marca.objects.filter(aplica_llanta=True, activo=True)
+        self.fields["medida"].queryset = MedidaLlanta.objects.all()
+        self.fields["marca"].required  = False
+        self.fields["medida"].required = False
 
     class Meta:
         model  = RegistroLlanta
-        fields = ["cautin", "marca", "medida", "origen", "validado"]
+        fields = ["cautin", "marca", "medida", "origen"]
