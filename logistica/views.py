@@ -1,8 +1,9 @@
+import json
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import get_object_or_404, render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
@@ -22,6 +23,7 @@ from .models import (
     DetalleDiecinuevePuntos, DetalleCanina, DetalleMedidasRemolque,
     RegistroLlanta, PosicionLlanta, FotoSubInspeccion, ConfiguracionInspeccion,
     Inspeccion, Linea, Manifiesto, Movimiento, SubInspeccion, Sucursal, Unidad, UnidadManifiesto,
+    TIPO_SUB_INSPECCION,
 )
 from .services import detectar_inconsistencias, crear_movimiento
 
@@ -827,3 +829,167 @@ def inspeccion_pdf(request, pk):
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="inspeccion-{inspeccion.pk}.pdf"'
     return response
+
+
+# ─── Dashboard de inspecciones ────────────────────────────────────────────────
+
+_SINO_DETAIL_ATTR = {
+    "CAJA":             "detalle_caja",
+    "CAJA_VACIA":       "detalle_caja_vacia",
+    "CINCO_PUNTOS":     "detalle_cinco_puntos",
+    "DIECINUEVE_PUNTOS":"detalle_diecinueve_puntos",
+    "CANINA":           "detalle_canina",
+}
+
+
+def _contar_negativos(sub):
+    attr = _SINO_DETAIL_ATTR.get(sub.tipo)
+    if not attr:
+        return 0
+    detalle = getattr(sub, attr, None)
+    if detalle is None:
+        return 0
+    return sum(
+        1 for f in detalle._meta.fields
+        if getattr(f, "max_length", None) == 2 and getattr(detalle, f.name, "") == "NO"
+    )
+
+
+@login_required
+def dashboard_inspecciones(request):
+    if not request.user.is_superuser and request.user.rol not in ("ADMIN", "CONTROL"):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+
+    sucursales = Sucursal.objects.filter(activo=True).order_by("nombre")
+    return render(request, "logistica/supervisión/dashboard_inspecciones.html", {
+        "sucursales": sucursales,
+        "tipos_sub": TIPO_SUB_INSPECCION,
+        "active_nav": "dashboard_inspecciones",
+    })
+
+
+@login_required
+def api_dashboard_inspecciones(request):
+    if not request.user.is_superuser and request.user.rol not in ("ADMIN", "CONTROL"):
+        return JsonResponse({"error": "Acceso denegado"}, status=403)
+
+    qs = (
+        Inspeccion.objects
+        .select_related(
+            "movimiento__sucursal",
+            "movimiento__manifiesto",
+            "movimiento__usuario",
+        )
+        .prefetch_related(
+            "movimiento__unidad_movimientos__unidad",
+            "sub_inspecciones__detalle_caja",
+            "sub_inspecciones__detalle_caja_vacia",
+            "sub_inspecciones__detalle_cinco_puntos",
+            "sub_inspecciones__detalle_diecinueve_puntos",
+            "sub_inspecciones__detalle_canina",
+        )
+        .order_by("-movimiento__fecha_hora_evento")
+    )
+
+    # Filtros
+    fecha_desde = request.GET.get("fecha_desde")
+    fecha_hasta = request.GET.get("fecha_hasta")
+    sucursal_id = request.GET.get("sucursal_id")
+    manifiesto_id = request.GET.get("manifiesto_id")
+    tipo_sub = request.GET.get("tipo_sub")
+    solo_alertas = request.GET.get("solo_alertas") == "1"
+
+    if fecha_desde:
+        qs = qs.filter(movimiento__fecha_hora_evento__date__gte=fecha_desde)
+    if fecha_hasta:
+        qs = qs.filter(movimiento__fecha_hora_evento__date__lte=fecha_hasta)
+    if sucursal_id:
+        qs = qs.filter(movimiento__sucursal_id=sucursal_id)
+    if manifiesto_id:
+        qs = qs.filter(movimiento__manifiesto_id=manifiesto_id)
+    if tipo_sub:
+        qs = qs.filter(sub_inspecciones__tipo=tipo_sub).distinct()
+
+    inspecciones_data = []
+    alertas_total = 0
+
+    for insp in qs[:200]:
+        mov = insp.movimiento
+        tractores = []
+        remolques = []
+        for um in mov.unidad_movimientos.all():
+            if um.unidad.tipo == "TRACTOR":
+                tractores.append(um.unidad.numero_economico)
+            else:
+                remolques.append(um.unidad.numero_economico)
+
+        subs_data = []
+        total_neg = 0
+        for sub in insp.sub_inspecciones.all():
+            neg = _contar_negativos(sub)
+            total_neg += neg
+            subs_data.append({
+                "id": sub.pk,
+                "tipo": sub.tipo,
+                "tipo_label": sub.get_tipo_display(),
+                "completada": sub.completada,
+                "negativos": neg,
+            })
+
+        tiene_alertas = total_neg > 0 or insp.estado == "RECHAZADA"
+        if solo_alertas and not tiene_alertas:
+            continue
+        if tiene_alertas:
+            alertas_total += 1
+
+        manifiesto = mov.manifiesto
+        inspecciones_data.append({
+            "id": insp.pk,
+            "estado": insp.estado,
+            "estado_label": insp.get_estado_display(),
+            "created_at": insp.created_at.strftime("%d/%m/%Y %H:%M"),
+            "movimiento": {
+                "id": mov.pk,
+                "fecha": mov.fecha_hora_evento.strftime("%d/%m/%Y %H:%M"),
+                "sucursal": mov.sucursal.nombre,
+                "sucursal_id": mov.sucursal_id,
+                "manifiesto": {
+                    "id": manifiesto.pk,
+                    "folio": manifiesto.folio_hoja_viajera or f"#{manifiesto.pk}",
+                } if manifiesto else None,
+                "tractores": tractores,
+                "remolques": remolques,
+            },
+            "sub_inspecciones": subs_data,
+            "tiene_alertas": tiene_alertas,
+            "total_negativos": total_neg,
+        })
+
+    total = len(inspecciones_data)
+    completadas = sum(1 for i in inspecciones_data if i["estado"] == "COMPLETADA")
+    en_proceso  = sum(1 for i in inspecciones_data if i["estado"] == "EN_PROCESO")
+    rechazadas  = sum(1 for i in inspecciones_data if i["estado"] == "RECHAZADA")
+
+    manifiestos_qs = (
+        Manifiesto.objects
+        .filter(movimientos__isnull=False, movimientos__tipo="INSPECCION")
+        .distinct()
+        .order_by("-created_at")
+        .values("id", "folio_hoja_viajera")[:100]
+    )
+
+    return JsonResponse({
+        "inspecciones": inspecciones_data,
+        "resumen": {
+            "total": total,
+            "completadas": completadas,
+            "en_proceso": en_proceso,
+            "rechazadas": rechazadas,
+            "con_alertas": alertas_total,
+        },
+        "manifiestos": [
+            {"id": m["id"], "folio": m["folio_hoja_viajera"] or f"#{m['id']}"}
+            for m in manifiestos_qs
+        ],
+    })

@@ -25,6 +25,8 @@ from .views import (
     inspeccion_pdf,
     sub_inspeccion_form,
     cerrar_inspeccion,
+    dashboard_inspecciones,
+    api_dashboard_inspecciones,
 )
 
 lineas_urls = ([
@@ -68,4 +70,6 @@ urlpatterns = [
     path("inspecciones/<int:pk>/sub/<int:sub_pk>/", sub_inspeccion_form, name="sub_inspeccion_form"),
     path("inspecciones/<int:pk>/pdf/", inspeccion_pdf, name="inspeccion_pdf"),
     path("inspecciones/<int:pk>/cerrar/", cerrar_inspeccion, name="cerrar_inspeccion"),
+    path("supervision/inspecciones/", dashboard_inspecciones, name="dashboard_inspecciones"),
+    path("supervision/inspecciones/datos/", api_dashboard_inspecciones, name="api_dashboard_inspecciones"),
 ]

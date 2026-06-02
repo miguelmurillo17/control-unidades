@@ -1,0 +1,496 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard de Inspecciones — Control de Unidades{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+<style>
+  .dash-filters {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: calc(var(--radius) * 1.5);
+    padding: 16px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 24px;
+  }
+  .dash-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 160px;
+  }
+  .dash-filter-group label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .dash-filter-group input,
+  .dash-filter-group select {
+    font-size: 13px;
+    padding: 6px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-bg);
+    color: var(--color-text);
+    height: 34px;
+  }
+  .dash-filter-group input:focus,
+  .dash-filter-group select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+  }
+  .dash-filter-actions {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .btn-primary {
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    height: 34px;
+  }
+  .btn-primary:hover { opacity: .9; }
+  .btn-ghost {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    height: 34px;
+  }
+  .btn-ghost:hover { background: var(--color-bg); }
+
+  /* KPI cards */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: calc(var(--radius) * 1.5);
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .kpi-card .kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: var(--color-text-muted);
+  }
+  .kpi-card .kpi-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-text);
+    line-height: 1;
+  }
+  .kpi-card.kpi-alert .kpi-value { color: #dc2626; }
+  .kpi-card.kpi-ok    .kpi-value { color: #16a34a; }
+  .kpi-card.kpi-warn  .kpi-value { color: #d97706; }
+
+  /* Sub-inspección chips */
+  .sub-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .sub-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+  .sub-chip.ok       { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+  .sub-chip.alert    { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+  .sub-chip.pending  { background: #f1f5f9; color: var(--color-text-muted); border-color: var(--color-border); }
+
+  /* Alert badge */
+  .badge-red { background: #fee2e2; color: #b91c1c; }
+
+  /* Expandable row */
+  .detail-row td {
+    padding: 0;
+    background: #fafafa;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .detail-inner {
+    padding: 14px 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+  }
+  .detail-sub {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+  }
+  .detail-sub-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .detail-sub-title { font-size: 12px; font-weight: 600; color: var(--color-text); }
+  .neg-count {
+    font-size: 11px;
+    font-weight: 700;
+    color: #dc2626;
+    background: #fee2e2;
+    padding: 1px 6px;
+    border-radius: 99px;
+  }
+  .neg-zero { color: #15803d; background: #dcfce7; }
+
+  /* Row clickable */
+  .data-table tbody tr.data-row { cursor: pointer; }
+  .data-table tbody tr.data-row:hover td { background: #f0f9ff; }
+  .data-table tbody tr.data-row.expanded td { background: #eff6ff; }
+
+  /* Alert row indicator */
+  tr.has-alert td:first-child { border-left: 3px solid #dc2626; }
+
+  /* Loading / empty */
+  .state-msg {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--color-text-muted);
+    font-size: 14px;
+  }
+
+  @media (max-width: 900px) {
+    .kpi-row { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .dash-filters { flex-direction: column; }
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+  {% include "partials/sidebar.html" with active_nav="dashboard_inspecciones" %}
+
+  <main class="main-content" id="dashboard-app">
+
+    <header class="page-header">
+      <div>
+        <h1>Dashboard de Inspecciones</h1>
+        <p>Supervisión de movimientos tipo inspección y sus sub-inspecciones</p>
+      </div>
+    </header>
+
+    <section class="page-body">
+
+      <!-- Filtros -->
+      <div class="dash-filters">
+        <div class="dash-filter-group">
+          <label>Fecha desde</label>
+          <input type="date" v-model="filtros.fecha_desde">
+        </div>
+        <div class="dash-filter-group">
+          <label>Fecha hasta</label>
+          <input type="date" v-model="filtros.fecha_hasta">
+        </div>
+        <div class="dash-filter-group">
+          <label>Sucursal</label>
+          <select v-model="filtros.sucursal_id">
+            <option value="">Todas</option>
+            {% for s in sucursales %}
+            <option value="{{ s.pk }}">{{ s.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="dash-filter-group">
+          <label>Manifiesto</label>
+          <select v-model="filtros.manifiesto_id">
+            <option value="">Todos</option>
+            <option v-for="m in manifiestos" :key="m.id" :value="m.id">[[ m.folio ]]</option>
+          </select>
+        </div>
+        <div class="dash-filter-group">
+          <label>Tipo sub-inspección</label>
+          <select v-model="filtros.tipo_sub">
+            <option value="">Todos</option>
+            {% for value, label in tipos_sub %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="dash-filter-group">
+          <label>Mostrar</label>
+          <select v-model="filtros.solo_alertas">
+            <option value="0">Todas las inspecciones</option>
+            <option value="1">Solo con alertas</option>
+          </select>
+        </div>
+        <div class="dash-filter-actions">
+          <button class="btn-primary" @click="cargar">Aplicar</button>
+          <button class="btn-ghost" @click="limpiar">Limpiar</button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <span class="kpi-label">Total</span>
+          <span class="kpi-value">[[ resumen.total ]]</span>
+        </div>
+        <div class="kpi-card kpi-ok">
+          <span class="kpi-label">Completadas</span>
+          <span class="kpi-value">[[ resumen.completadas ]]</span>
+        </div>
+        <div class="kpi-card kpi-warn">
+          <span class="kpi-label">En proceso</span>
+          <span class="kpi-value">[[ resumen.en_proceso ]]</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Rechazadas</span>
+          <span class="kpi-value">[[ resumen.rechazadas ]]</span>
+        </div>
+        <div class="kpi-card kpi-alert">
+          <span class="kpi-label">Con alertas</span>
+          <span class="kpi-value">[[ resumen.con_alertas ]]</span>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="table-card" v-if="!cargando && inspecciones.length > 0">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Sucursal</th>
+              <th>Manifiesto</th>
+              <th>Unidades</th>
+              <th>Sub-inspecciones</th>
+              <th>Estado</th>
+              <th>Alertas</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-for="insp in inspecciones" :key="insp.id">
+              <!-- Fila principal -->
+              <tr
+                class="data-row"
+                :class="{ expanded: expandido === insp.id, 'has-alert': insp.tiene_alertas }"
+                @click="toggleExpand(insp.id)"
+              >
+                <td class="cell-primary">[[ insp.id ]]</td>
+                <td>[[ insp.movimiento.fecha ]]</td>
+                <td>[[ insp.movimiento.sucursal ]]</td>
+                <td>
+                  <span v-if="insp.movimiento.manifiesto">
+                    [[ insp.movimiento.manifiesto.folio ]]
+                  </span>
+                  <span v-else class="text-muted">—</span>
+                </td>
+                <td>
+                  <span v-for="t in insp.movimiento.tractores" :key="t" class="sub-chip pending" style="margin-right:3px;font-size:9px;padding:1px 5px">[[ t ]]</span>
+                  <span v-for="r in insp.movimiento.remolques" :key="r" class="sub-chip ok" style="margin-right:3px;font-size:9px;padding:1px 5px">[[ r ]]</span>
+                </td>
+                <td>
+                  <div class="sub-chips">
+                    <span
+                      v-for="sub in insp.sub_inspecciones"
+                      :key="sub.id"
+                      class="sub-chip"
+                      :class="subChipClass(sub)"
+                      :title="sub.tipo_label + (sub.negativos > 0 ? ' — ' + sub.negativos + ' negativos' : '')"
+                      style="font-size:9px;padding:1px 5px"
+                    >
+                      [[ sub.tipo_label.split(' ').slice(-1)[0] ]]
+                      <span v-if="sub.negativos > 0">!</span>
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge"
+                    :class="{
+                      'badge-green':  insp.estado === 'COMPLETADA',
+                      'badge-yellow': insp.estado === 'EN_PROCESO',
+                      'badge-red':    insp.estado === 'RECHAZADA',
+                      'badge-gray':   !['COMPLETADA','EN_PROCESO','RECHAZADA'].includes(insp.estado),
+                    }"
+                  >[[ insp.estado_label ]]</span>
+                </td>
+                <td>
+                  <span v-if="insp.tiene_alertas" class="badge badge-red" style="display:inline-flex;align-items:center;gap:4px">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                      <line x1="12" y1="9" x2="12" y2="13"/>
+                      <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    [[ insp.total_negativos ]]
+                  </span>
+                  <span v-else class="badge badge-green" style="display:inline-flex;align-items:center;gap:4px">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    OK
+                  </span>
+                </td>
+                <td class="cell-actions">
+                  <a
+                    :href="'/inspecciones/' + insp.id + '/pdf/'"
+                    class="btn-pdf-sm"
+                    title="Descargar reporte PDF"
+                    @click.stop
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="12" y1="18" x2="12" y2="12"/>
+                      <line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                    PDF
+                  </a>
+                  <a :href="'/inspecciones/' + insp.id + '/'" class="action-link" title="Ver inspección" @click.stop>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </a>
+                </td>
+              </tr>
+
+              <!-- Fila de detalle expandida -->
+              <tr v-if="expandido === insp.id" class="detail-row">
+                <td :colspan="9">
+                  <div class="detail-inner">
+                    <div
+                      v-for="sub in insp.sub_inspecciones"
+                      :key="sub.id"
+                      class="detail-sub"
+                    >
+                      <div class="detail-sub-header">
+                        <span class="detail-sub-title">[[ sub.tipo_label ]]</span>
+                        <span class="neg-count" :class="{ 'neg-zero': sub.negativos === 0 }">
+                          <span v-if="sub.negativos > 0">[[ sub.negativos ]] negativo[[ sub.negativos !== 1 ? 's' : '' ]]</span>
+                          <span v-else>OK</span>
+                        </span>
+                      </div>
+                      <span class="badge" :class="sub.completada ? 'badge-green' : 'badge-gray'">
+                        [[ sub.completada ? 'Completada' : 'Pendiente' ]]
+                      </span>
+                    </div>
+                    <div v-if="insp.sub_inspecciones.length === 0" style="color:var(--color-text-muted);font-size:13px">
+                      Sin sub-inspecciones registradas.
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="state-msg" v-if="cargando">Cargando inspecciones...</div>
+      <div class="state-msg" v-if="!cargando && inspecciones.length === 0">
+        No se encontraron inspecciones con los filtros seleccionados.
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<script>
+(function () {
+const API_URL = "{% url 'api_dashboard_inspecciones' %}";
+
+Vue.createApp({
+  delimiters: ['[[', ']]'],
+  data() {
+    return {
+      cargando: true,
+      inspecciones: [],
+      manifiestos: [],
+      resumen: { total: 0, completadas: 0, en_proceso: 0, rechazadas: 0, con_alertas: 0 },
+      expandido: null,
+      filtros: {
+        fecha_desde: '',
+        fecha_hasta: '',
+        sucursal_id: '',
+        manifiesto_id: '',
+        tipo_sub: '',
+        solo_alertas: '0',
+      },
+    };
+  },
+  mounted() {
+    this.cargar();
+  },
+  methods: {
+    async cargar() {
+      this.cargando = true;
+      this.expandido = null;
+      const params = new URLSearchParams();
+      for (const [k, v] of Object.entries(this.filtros)) {
+        if (v) params.set(k, v);
+      }
+      try {
+        const res = await fetch(`${API_URL}?${params}`);
+        const data = await res.json();
+        this.inspecciones = data.inspecciones;
+        this.resumen      = data.resumen;
+        this.manifiestos  = data.manifiestos;
+      } catch (e) {
+        console.error('Error cargando datos', e);
+      } finally {
+        this.cargando = false;
+      }
+    },
+    limpiar() {
+      this.filtros = { fecha_desde: '', fecha_hasta: '', sucursal_id: '', manifiesto_id: '', tipo_sub: '', solo_alertas: '0' };
+      this.cargar();
+    },
+    toggleExpand(id) {
+      this.expandido = this.expandido === id ? null : id;
+    },
+    subChipClass(sub) {
+      if (!sub.completada) return 'pending';
+      if (sub.negativos > 0) return 'alert';
+      return 'ok';
+    },
+  },
+}).mount('#dashboard-app');
+})();
+</script>
+{% endblock %}
