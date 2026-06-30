@@ -30,7 +30,7 @@
                     <thead>
                         <tr>
                             <th>Nombre</th>
-                            <th>Ciudad</th>
+                            <th>Código</th>
                             <th>Tipo</th>
                             <th>Estado</th>
                             <th></th>
@@ -40,7 +40,7 @@
                         {% for s in sucursales %}
                         <tr>
                             <td class="cell-primary">{{ s.nombre }}</td>
-                            <td>{{ s.ciudad }}</td>
+                            <td>{{ s.codigo }}</td>
                             <td>{{ s.tipo|default:"—" }}</td>
                             <td>
                                 {% if s.activo %}

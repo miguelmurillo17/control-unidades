@@ -202,6 +202,27 @@
         max-width: 100%;
     }
 
+    /* font-size 16px evita el zoom automático de iOS al enfocar un campo */
+    .field input[type="text"],
+    .field input[type="password"],
+    .field input[type="email"],
+    .field input[type="number"],
+    .field input[type="datetime-local"],
+    .field select,
+    .field textarea {
+        font-size: 16px;
+        height: 44px;
+    }
+
+    .field textarea {
+        height: auto;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
     .form-actions {
         flex-direction: column-reverse;
         align-items: stretch;
@@ -211,5 +232,6 @@
     .form-actions .btn-secondary-sm {
         width: 100%;
         justify-content: center;
+        height: 44px;
     }
 }

@@ -24,7 +24,7 @@
         <section class="page-body">
             {% if inspecciones %}
             <div class="table-card">
-                <table class="data-table">
+                <table class="data-table cards">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -39,20 +39,20 @@
                         {% for insp in inspecciones %}
                         <tr>
                             <td class="cell-primary">{{ insp.pk }}</td>
-                            <td>
+                            <td data-label="Manifiesto">
                                 {% with m=insp.movimiento.manifiesto %}
                                 {% if m %}{% if m.folio_hoja_viajera %}{{ m.folio_hoja_viajera }}{% else %}#{{ m.pk }}{% endif %}{% else %}—{% endif %}
                                 {% endwith %}
                             </td>
-                            <td>
+                            <td data-label="Ruta">
                                 {% with m=insp.movimiento.manifiesto %}
                                 {% if m %}{{ m.sucursal_origen.nombre }} → {{ m.sucursal_destino.nombre }}{% else %}—{% endif %}
                                 {% endwith %}
                             </td>
-                            <td>
+                            <td data-label="Progreso">
                                 <span class="progreso-contador">{{ insp.completadas_subs }} / {{ insp.total_subs }}</span>
                             </td>
-                            <td>
+                            <td data-label="Estado">
                                 {% if insp.estado == "EN_PROCESO" %}
                                 <span class="badge badge-yellow">En proceso</span>
                                 {% elif insp.estado == "COMPLETADA" %}
@@ -63,19 +63,18 @@
                             </td>
                             <td class="cell-actions">
                                 <a href="{% url 'inspeccion_pdf' insp.pk %}"
-                                   class="btn-pdf-sm"
-                                   title="Descargar reporte PDF">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                   class="action-link"
+                                   style="color:var(--color-text-muted)"
+                                   title="Imprimir">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
                                          stroke="currentColor" stroke-width="2.2"
                                          stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                        <polyline points="14 2 14 8 20 8"/>
-                                        <line x1="12" y1="18" x2="12" y2="12"/>
-                                        <line x1="9" y1="15" x2="15" y2="15"/>
+                                        <polyline points="6 9 6 2 18 2 18 9"/>
+                                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                                        <rect x="6" y="14" width="12" height="8"/>
                                     </svg>
-                                    PDF
                                 </a>
-                                <a href="{% url 'inspeccion_detalle' insp.pk %}" class="action-link" title="{% if insp.estado == 'EN_PROCESO' %}Continuar inspección{% else %}Ver inspección{% endif %}">
+                                <a href="{% url 'inspeccion_detalle' insp.pk %}" class="action-link" title="{% if insp.estado == 'EN_PROCESO' %}Capturar{% else %}Ver{% endif %}">
                                     {% if insp.estado == "EN_PROCESO" %}
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
                                          stroke="currentColor" stroke-width="2.2"

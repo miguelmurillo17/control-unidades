@@ -4,6 +4,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
@@ -82,7 +83,7 @@ class SucursalListView(AdminRequiredMixin, ListView):
 class SucursalCreateView(AdminRequiredMixin, CreateView):
     model = Sucursal
     template_name = "logistica/sucursales/form.html"
-    fields = ["nombre", "ciudad", "tipo", "activo"]
+    fields = ["nombre", "codigo", "tipo", "activo"]
     success_url = reverse_lazy("sucursales:list")
 
     def get_context_data(self, **kwargs):
@@ -95,7 +96,7 @@ class SucursalCreateView(AdminRequiredMixin, CreateView):
 class SucursalUpdateView(AdminRequiredMixin, UpdateView):
     model = Sucursal
     template_name = "logistica/sucursales/form.html"
-    fields = ["nombre", "ciudad", "tipo", "activo"]
+    fields = ["nombre", "codigo", "tipo", "activo"]
     success_url = reverse_lazy("sucursales:list")
 
     def get_context_data(self, **kwargs):
@@ -855,6 +856,26 @@ def _contar_negativos(sub):
     )
 
 
+def _detalle_sino(sub):
+    """Detalle con respuestas SI/NO de la sub-inspección, o None si no aplica/existe."""
+    attr = _SINO_DETAIL_ATTR.get(sub.tipo)
+    if not attr:
+        return None
+    try:
+        return getattr(sub, attr)
+    except ObjectDoesNotExist:
+        return None
+
+
+def _respuestas_sino(detalle):
+    """{campo: valor} de los campos SI/NO de un detalle."""
+    return {
+        f.name: (getattr(detalle, f.name, "") or "")
+        for f in detalle._meta.fields
+        if getattr(f, "max_length", None) == 2
+    }
+
+
 @login_required
 def dashboard_inspecciones(request):
     if not request.user.is_superuser and request.user.rol not in ("ADMIN", "CONTROL"):
@@ -993,3 +1014,246 @@ def api_dashboard_inspecciones(request):
             for m in manifiestos_qs
         ],
     })
+
+
+@login_required
+def api_manifiesto_timeline(request, pk):
+    """Línea del tiempo de los movimientos de un manifiesto."""
+    if not request.user.is_superuser and request.user.rol not in ("ADMIN", "CONTROL"):
+        return JsonResponse({"error": "Acceso denegado"}, status=403)
+
+    manifiesto = get_object_or_404(
+        Manifiesto.objects.select_related("sucursal_origen", "sucursal_destino"),
+        pk=pk,
+    )
+
+    movimientos = (
+        manifiesto.movimientos
+        .select_related("sucursal", "usuario", "inspeccion")
+        .order_by("fecha_hora_evento")
+    )
+
+    eventos = []
+    for mov in movimientos:
+        try:
+            insp = mov.inspeccion
+        except Inspeccion.DoesNotExist:
+            insp = None
+
+        terminado = not mov.cancelado
+        if insp is not None and insp.estado != "COMPLETADA":
+            terminado = False
+
+        eventos.append({
+            "id": mov.pk,
+            "tipo": mov.tipo,
+            "tipo_label": mov.get_tipo_display(),
+            "fecha": mov.fecha_hora_evento.strftime("%d/%m/%Y %H:%M"),
+            "fecha_corta": mov.fecha_hora_evento.strftime("%d/%m/%Y"),
+            "terminado": terminado,
+            "sucursal": mov.sucursal.nombre,
+            "sucursal_codigo": mov.sucursal.codigo,
+            "estatus_caja": mov.get_estatus_caja_display() if mov.estatus_caja else "",
+            "cancelado": mov.cancelado,
+            "inconsistente": mov.inconsistente,
+            "usuario": mov.usuario.get_full_name() or mov.usuario.username,
+        })
+
+    return JsonResponse({
+        "manifiesto": {
+            "id": manifiesto.pk,
+            "folio": manifiesto.folio_hoja_viajera or f"#{manifiesto.pk}",
+            "estado": manifiesto.get_estado_display(),
+            "origen": manifiesto.sucursal_origen.nombre,
+            "destino": manifiesto.sucursal_destino.nombre,
+        },
+        "eventos": eventos,
+    })
+
+
+@login_required
+def api_dashboard_alertas(request):
+    """Alertas operativas: hallazgos, inspecciones incompletas y movimientos inconsistentes."""
+    if not request.user.is_superuser and request.user.rol not in ("ADMIN", "CONTROL"):
+        return JsonResponse({"error": "Acceso denegado"}, status=403)
+
+    fecha_desde = request.GET.get("fecha_desde")
+    fecha_hasta = request.GET.get("fecha_hasta")
+    sucursal_id = request.GET.get("sucursal_id")
+    manifiesto_id = request.GET.get("manifiesto_id")
+    tipo_sub = request.GET.get("tipo_sub")
+
+    def _folio(manifiesto):
+        if not manifiesto:
+            return None
+        return manifiesto.folio_hoja_viajera or f"#{manifiesto.pk}"
+
+    alertas = []
+
+    # ── Alertas de inspección (hallazgos / incompleta) ──
+    insp_qs = (
+        Inspeccion.objects
+        .select_related("movimiento__sucursal", "movimiento__manifiesto")
+        .prefetch_related(
+            "sub_inspecciones__detalle_caja",
+            "sub_inspecciones__detalle_caja_vacia",
+            "sub_inspecciones__detalle_cinco_puntos",
+            "sub_inspecciones__detalle_diecinueve_puntos",
+            "sub_inspecciones__detalle_canina",
+        )
+        .order_by("-movimiento__fecha_hora_evento")
+    )
+    if fecha_desde:
+        insp_qs = insp_qs.filter(movimiento__fecha_hora_evento__date__gte=fecha_desde)
+    if fecha_hasta:
+        insp_qs = insp_qs.filter(movimiento__fecha_hora_evento__date__lte=fecha_hasta)
+    if sucursal_id:
+        insp_qs = insp_qs.filter(movimiento__sucursal_id=sucursal_id)
+    if manifiesto_id:
+        insp_qs = insp_qs.filter(movimiento__manifiesto_id=manifiesto_id)
+    if tipo_sub:
+        insp_qs = insp_qs.filter(sub_inspecciones__tipo=tipo_sub).distinct()
+
+    for insp in insp_qs[:300]:
+        mov = insp.movimiento
+        subs = list(insp.sub_inspecciones.all())
+        total_neg = sum(_contar_negativos(s) for s in subs)
+        base = {
+            "fecha": mov.fecha_hora_evento.strftime("%d/%m/%Y %H:%M"),
+            "fecha_iso": mov.fecha_hora_evento.isoformat(),
+            "manifiesto": _folio(mov.manifiesto),
+            "sucursal": mov.sucursal.nombre,
+        }
+        if total_neg > 0:
+            alertas.append({
+                **base,
+                "tipo": "hallazgos",
+                "tipo_label": "Con hallazgos",
+                "severidad": "alta",
+                "descripcion": f"{total_neg} hallazgo(s) en la inspección",
+            })
+
+    # ── Movimientos inconsistentes (no aplica si se filtra por tipo de sub-inspección) ──
+    if not tipo_sub:
+        mov_qs = (
+            Movimiento.objects
+            .filter(inconsistente=True)
+            .select_related("sucursal", "manifiesto")
+            .order_by("-fecha_hora_evento")
+        )
+        if fecha_desde:
+            mov_qs = mov_qs.filter(fecha_hora_evento__date__gte=fecha_desde)
+        if fecha_hasta:
+            mov_qs = mov_qs.filter(fecha_hora_evento__date__lte=fecha_hasta)
+        if sucursal_id:
+            mov_qs = mov_qs.filter(sucursal_id=sucursal_id)
+        if manifiesto_id:
+            mov_qs = mov_qs.filter(manifiesto_id=manifiesto_id)
+
+        for mov in mov_qs[:300]:
+            alertas.append({
+                "fecha": mov.fecha_hora_evento.strftime("%d/%m/%Y %H:%M"),
+                "fecha_iso": mov.fecha_hora_evento.isoformat(),
+                "manifiesto": _folio(mov.manifiesto),
+                "sucursal": mov.sucursal.nombre,
+                "tipo": "inconsistente",
+                "tipo_label": "Movimiento inconsistente",
+                "severidad": "alta",
+                "descripcion": f"Movimiento «{mov.get_tipo_display()}» marcado como inconsistente",
+            })
+
+    # ── Cambio en respuestas entre inspecciones del mismo manifiesto ──
+    comp_qs = (
+        Inspeccion.objects
+        .filter(movimiento__manifiesto__isnull=False)
+        .select_related("movimiento__sucursal", "movimiento__manifiesto")
+        .prefetch_related(
+            "sub_inspecciones__detalle_caja",
+            "sub_inspecciones__detalle_caja_vacia",
+            "sub_inspecciones__detalle_cinco_puntos",
+            "sub_inspecciones__detalle_diecinueve_puntos",
+            "sub_inspecciones__detalle_canina",
+        )
+        .order_by("movimiento__manifiesto_id", "movimiento__fecha_hora_evento")
+    )
+    if manifiesto_id:
+        comp_qs = comp_qs.filter(movimiento__manifiesto_id=manifiesto_id)
+
+    _sino_lbl = {"SI": "Sí", "NO": "No"}
+    ultimo = {}  # (manifiesto_id, tipo) -> {campo: última respuesta no vacía}
+
+    for insp in comp_qs[:1000]:
+        mov = insp.movimiento
+        for sub in insp.sub_inspecciones.all():
+            detalle = _detalle_sino(sub)
+            if detalle is None:
+                continue
+            resp = _respuestas_sino(detalle)
+            ref = ultimo.setdefault((mov.manifiesto_id, sub.tipo), {})
+
+            cambios = []
+            for campo, val in resp.items():
+                if not val:
+                    continue
+                prev = ref.get(campo)
+                if prev and prev != val:
+                    cambios.append((campo, prev, val))
+                ref[campo] = val
+
+            if not cambios:
+                continue
+            if tipo_sub and sub.tipo != tipo_sub:
+                continue
+            if sucursal_id and str(mov.sucursal_id) != str(sucursal_id):
+                continue
+            fecha_dia = mov.fecha_hora_evento.date().isoformat()
+            if fecha_desde and fecha_dia < fecha_desde:
+                continue
+            if fecha_hasta and fecha_dia > fecha_hasta:
+                continue
+
+            partes = [
+                f"{detalle._meta.get_field(c).verbose_name}: "
+                f"{_sino_lbl.get(p, p)}→{_sino_lbl.get(v, v)}"
+                for c, p, v in cambios[:3]
+            ]
+            extra = f" (+{len(cambios) - 3})" if len(cambios) > 3 else ""
+            alertas.append({
+                "fecha": mov.fecha_hora_evento.strftime("%d/%m/%Y %H:%M"),
+                "fecha_iso": mov.fecha_hora_evento.isoformat(),
+                "manifiesto": _folio(mov.manifiesto),
+                "sucursal": mov.sucursal.nombre,
+                "tipo": "cambio_respuestas",
+                "tipo_label": "Cambio en respuestas",
+                "severidad": "alta",
+                "descripcion": f"{sub.get_tipo_display()} — {'; '.join(partes)}{extra}",
+            })
+
+    # ── (TEMPORAL) Alertas ficticias "Llantas cambiadas" para demo de UI ──
+    # Sustituir cuando exista la captura de cambios de llantas en taller, que
+    # permitirá validar que las llantas inspeccionadas son las registradas.
+    _llantas_demo = [
+        ("KMLP2l3", "Los Mochis", "28/06/2026 09:15", "2026-06-28T09:15:00",
+         "Tractor T-204, posición 3: marca inspeccionada (Goodyear) ≠ registrada (Michelin)"),
+        ("KMLP2l3", "Los Mochis", "28/06/2026 09:15", "2026-06-28T09:15:00",
+         "Tractor T-204, posición 7: medida no coincide con la registrada"),
+        ("IPCD49AD", "Guadalajara", "27/06/2026 16:40", "2026-06-27T16:40:00",
+         "Remolque R-118, posición 1: sin registro de cambio autorizado en taller"),
+        ("OMR50AX4", "Monterrey", "26/06/2026 11:05", "2026-06-26T11:05:00",
+         "Tractor T-330, posición 5: cautín distinto al registrado"),
+    ]
+    for folio, suc, fecha, iso, desc in _llantas_demo:
+        alertas.append({
+            "fecha": fecha,
+            "fecha_iso": iso,
+            "manifiesto": folio,
+            "sucursal": suc,
+            "tipo": "llantas_cambiadas",
+            "tipo_label": "Llantas cambiadas",
+            "severidad": "alta",
+            "descripcion": desc,
+        })
+
+    alertas.sort(key=lambda a: a["fecha_iso"], reverse=True)
+
+    return JsonResponse({"alertas": alertas})

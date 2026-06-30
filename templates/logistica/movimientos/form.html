@@ -108,7 +108,7 @@
                                 {% for sucursal in form.sucursal.field.queryset %}
                                 <option value="{{ sucursal.pk }}"
                                     {% if form.sucursal.value|stringformat:"s" == sucursal.pk|stringformat:"s" %}selected{% endif %}>
-                                    {{ sucursal.nombre }} — {{ sucursal.ciudad }}
+                                    {{ sucursal.nombre }} — {{ sucursal.codigo }}
                                 </option>
                                 {% endfor %}
                             </select>

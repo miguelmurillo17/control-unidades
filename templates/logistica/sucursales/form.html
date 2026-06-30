@@ -38,12 +38,12 @@
                         </div>
 
                         <div class="field">
-                            <label for="{{ form.ciudad.id_for_label }}">Ciudad</label>
-                            <input type="text" id="{{ form.ciudad.id_for_label }}"
-                                   name="{{ form.ciudad.html_name }}"
-                                   value="{{ form.ciudad.value|default:'' }}"
-                                   class="{% if form.ciudad.errors %}input-error{% endif %}">
-                            {% if form.ciudad.errors %}<span class="field-error">{{ form.ciudad.errors.0 }}</span>{% endif %}
+                            <label for="{{ form.codigo.id_for_label }}">Código</label>
+                            <input type="text" id="{{ form.codigo.id_for_label }}"
+                                   name="{{ form.codigo.html_name }}"
+                                   value="{{ form.codigo.value|default:'' }}"
+                                   class="{% if form.codigo.errors %}input-error{% endif %}">
+                            {% if form.codigo.errors %}<span class="field-error">{{ form.codigo.errors.0 }}</span>{% endif %}
                         </div>
 
                         <div class="field">

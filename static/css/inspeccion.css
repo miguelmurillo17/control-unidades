@@ -635,3 +635,154 @@
 .link-muted:hover {
     color: var(--color-primary);
 }
+
+/* ── Adaptación a smartphone ──────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    /* Encabezado: que los badges/botones bajen de línea sin desbordar */
+    .page-header {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+    .insp-estado-badge {
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+    }
+    .btn-cerrar-inspeccion,
+    .insp-estado-badge .btn-pdf-sm {
+        flex: 1 1 auto;
+        justify-content: center;
+        min-height: 40px;
+    }
+
+    /* Tarjetas con menos padding */
+    .progress-card { padding: 16px; }
+    .completada-card { padding: 16px; }
+    .footer-sub-cols { padding: 16px; }
+    .progress-header { flex-wrap: wrap; gap: 4px; }
+
+    /* Checklist: toda la celda Bien/Mal es área táctil; radios más grandes */
+    .checklist-label-header { padding: 10px 12px; }
+    .checklist-opt-header { width: 64px; padding: 10px 4px; }
+    .checklist-label { padding: 4px 12px; font-size: 0.9375rem; }
+    .checklist-option { padding: 0; }
+    .checklist-radio {
+        width: 100%;
+        min-height: 52px;
+        padding: 8px 4px;
+    }
+    .checklist-radio input[type="radio"] {
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Resultado (radios grandes, ocupan el ancho) */
+    .radio-group { gap: 10px; }
+    .radio-option {
+        flex: 1 1 calc(50% - 10px);
+        justify-content: center;
+        padding: 12px 14px;
+        border: 1px solid var(--color-border);
+        min-height: 48px;
+    }
+    .radio-option input[type="radio"] { width: 20px; height: 20px; }
+
+    /* Tabla de llantas: scroll horizontal suave dentro de la tarjeta */
+    .checklist-card { -webkit-overflow-scrolling: touch; }
+
+    /* font-size 16px evita el zoom automático de iOS al enfocar */
+    .lt-input,
+    .lt-select,
+    .footer-sub-textarea {
+        font-size: 16px;
+    }
+    .lt-input,
+    .lt-select { min-height: 40px; }
+
+    /* Observaciones en la lista: permitir que envuelva en vez de cortar */
+    .cell-obs {
+        white-space: normal;
+        max-width: 160px;
+    }
+
+    /* Fotos: miniaturas un poco más grandes y botón a todo el ancho */
+    .foto-thumb { width: 84px; height: 84px; }
+    .foto-add-btn { width: 100%; justify-content: center; min-height: 44px; }
+
+    /* ── Tabla → tarjetas (lista de inspecciones) ── */
+    .data-table.cards thead { display: none; }
+    .data-table.cards,
+    .data-table.cards tbody,
+    .data-table.cards tr,
+    .data-table.cards td { display: block; width: 100%; }
+
+    .data-table.cards tr {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-surface);
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    }
+
+    .data-table.cards td {
+        border: none;
+        padding: 7px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        text-align: right;
+    }
+
+    .data-table.cards td::before {
+        content: attr(data-label);
+        flex: 0 0 auto;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        color: var(--color-text-muted);
+    }
+
+    /* Encabezado de la tarjeta: "Inspección #N" */
+    .data-table.cards td.cell-primary {
+        display: block;
+        text-align: left;
+        padding: 0 0 8px;
+        margin-bottom: 6px;
+        border-bottom: 1px solid var(--color-border);
+        font-size: 15px;
+        font-weight: 700;
+        opacity: 1;
+    }
+    .data-table.cards td.cell-primary::before {
+        content: "Inspección #";
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--color-text);
+    }
+
+    /* Acciones: barra inferior con botones tocables */
+    .data-table.cards td.cell-actions {
+        justify-content: flex-end;
+        gap: 6px;
+        padding-top: 10px;
+        margin-top: 4px;
+        border-top: 1px solid var(--color-border);
+    }
+    .data-table.cards td.cell-actions::before { content: ""; }
+    .data-table.cards td.cell-actions .action-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        margin: 0;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+    }
+}

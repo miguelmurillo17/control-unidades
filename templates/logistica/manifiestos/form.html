@@ -79,7 +79,7 @@
                                 {% for s in form.sucursal_origen.field.queryset %}
                                 <option value="{{ s.pk }}"
                                     {% if form.sucursal_origen.value|stringformat:"s" == s.pk|stringformat:"s" %}selected{% endif %}>
-                                    {{ s.nombre }} — {{ s.ciudad }}
+                                    {{ s.nombre }} — {{ s.codigo }}
                                 </option>
                                 {% endfor %}
                             </select>
@@ -94,7 +94,7 @@
                                 {% for s in form.sucursal_destino.field.queryset %}
                                 <option value="{{ s.pk }}"
                                     {% if form.sucursal_destino.value|stringformat:"s" == s.pk|stringformat:"s" %}selected{% endif %}>
-                                    {{ s.nombre }} — {{ s.ciudad }}
+                                    {{ s.nombre }} — {{ s.codigo }}
                                 </option>
                                 {% endfor %}
                             </select>

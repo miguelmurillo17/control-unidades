@@ -11,9 +11,9 @@ from .models import (
 
 @admin.register(Sucursal)
 class SucursalAdmin(admin.ModelAdmin):
-    list_display  = ("nombre", "ciudad", "tipo", "activo", "created_at")
+    list_display  = ("nombre", "codigo", "tipo", "activo", "created_at")
     list_filter   = ("activo", "tipo")
-    search_fields = ("nombre", "ciudad")
+    search_fields = ("nombre", "codigo")
 
 
 @admin.register(Unidad)

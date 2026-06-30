@@ -27,6 +27,8 @@ from .views import (
     cerrar_inspeccion,
     dashboard_inspecciones,
     api_dashboard_inspecciones,
+    api_manifiesto_timeline,
+    api_dashboard_alertas,
 )
 
 lineas_urls = ([
@@ -72,4 +74,6 @@ urlpatterns = [
     path("inspecciones/<int:pk>/cerrar/", cerrar_inspeccion, name="cerrar_inspeccion"),
     path("supervision/inspecciones/", dashboard_inspecciones, name="dashboard_inspecciones"),
     path("supervision/inspecciones/datos/", api_dashboard_inspecciones, name="api_dashboard_inspecciones"),
+    path("supervision/manifiestos/<int:pk>/timeline/", api_manifiesto_timeline, name="api_manifiesto_timeline"),
+    path("supervision/inspecciones/alertas/", api_dashboard_alertas, name="api_dashboard_alertas"),
 ]

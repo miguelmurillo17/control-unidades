@@ -130,6 +130,167 @@
   .sub-chip.alert    { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
   .sub-chip.pending  { background: #f1f5f9; color: var(--color-text-muted); border-color: var(--color-border); }
 
+  /* Cuadrícula de sub-inspecciones */
+  .sub-col {
+    width: 38px;
+    min-width: 38px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+  .sub-col svg { display: block; margin: 0 auto; }
+  .data-table td.sub-cell {
+    text-align: center;
+    padding: 4px 2px;
+  }
+  .sub-mark {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: middle;
+  }
+  .sub-mark.ok      { background: #dcfce7; color: #15803d; }
+  .sub-mark.pending { background: #f8fafc; border: 1px dashed var(--color-border); }
+  .sub-mark.na      { background: transparent; color: #cbd5e1; }
+  /* Contador de alertas */
+  .sub-mark.count-ok    { background: #dcfce7; color: #15803d; }
+  .sub-mark.count-alert { background: #fee2e2; color: #b91c1c; }
+  /* Triángulo de alerta (hallazgos): esquina inferior derecha del cuadro */
+  .sub-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 8px;
+    height: 8px;
+    background: #dc2626;
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  }
+
+  /* Leyenda */
+  .sub-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 18px;
+    align-items: center;
+    padding: 12px 16px;
+    border-top: 1px solid var(--color-border);
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
+  .sub-legend .lg { display: inline-flex; align-items: center; gap: 6px; }
+
+  /* Sección de alertas */
+  .alertas-section { margin-top: 24px; }
+  .alertas-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .alertas-header h2 { font-size: 16px; font-weight: 700; margin: 0; color: var(--color-text); }
+  .alertas-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 99px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .alerta-desc-list {
+    margin: 0;
+    padding-left: 16px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
+  .alerta-desc-list li { line-height: 1.45; }
+  .alerta-desc-list li + li { margin-top: 2px; }
+
+  /* Línea del tiempo del manifiesto */
+  .timeline-section {
+    margin-top: 24px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: calc(var(--radius) * 1.5);
+    padding: 16px 20px;
+  }
+  .timeline-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .timeline-header h2 { font-size: 16px; font-weight: 700; margin: 0; color: var(--color-text); }
+  .timeline-route { font-size: 13px; color: var(--color-text-muted); }
+
+  .tl {
+    display: flex;
+    align-items: flex-start;
+    overflow-x: auto;
+    padding: 12px 4px 4px;
+  }
+  .tl-item {
+    position: relative;
+    flex: 0 0 auto;
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0 6px;
+  }
+  /* Línea conectora entre nodos (detrás de los círculos) */
+  .tl-item:not(:first-child)::before {
+    content: '';
+    position: absolute;
+    top: 23px;            /* centro vertical del nodo (46px / 2) */
+    left: -50%;
+    width: 100%;
+    height: 2px;
+    background: var(--color-border);
+    z-index: 0;
+  }
+  .tl-node {
+    position: relative;
+    z-index: 1;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid;
+    background: var(--color-surface);
+  }
+  .tl-node.done    { background: #dcfce7; border-color: #16a34a; color: #15803d; }
+  .tl-node.pending { background: #fef9c3; border-color: #eab308; color: #a16207; }
+  .tl-icon { width: 22px; height: 22px; }
+  .tl-label {
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: 1.2;
+  }
+  .tl-date { margin-top: 2px; font-size: 11px; color: var(--color-text-muted); }
+
   /* Alert badge */
   .badge-red { background: #fee2e2; color: #b91c1c; }
 
@@ -172,9 +333,6 @@
   .data-table tbody tr.data-row { cursor: pointer; }
   .data-table tbody tr.data-row:hover td { background: #f0f9ff; }
   .data-table tbody tr.data-row.expanded td { background: #eff6ff; }
-
-  /* Alert row indicator */
-  tr.has-alert td:first-child { border-left: 3px solid #dc2626; }
 
   /* Loading / empty */
   .state-msg {
@@ -290,10 +448,19 @@
               <th>Fecha</th>
               <th>Sucursal</th>
               <th>Manifiesto</th>
-              <th>Unidades</th>
-              <th>Sub-inspecciones</th>
+              <th>Tractor</th>
+              <th>Remolque</th>
+              <th v-for="t in tipos" :key="t.code" class="sub-col" :title="t.label">[[ t.abbr ]]</th>
+              <th class="sub-col" title="Alertas: total de hallazgos (negativos) detectados en la inspección">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </th>
               <th>Estado</th>
-              <th>Alertas</th>
               <th></th>
             </tr>
           </thead>
@@ -315,23 +482,26 @@
                   <span v-else class="text-muted">—</span>
                 </td>
                 <td>
-                  <span v-for="t in insp.movimiento.tractores" :key="t" class="sub-chip pending" style="margin-right:3px;font-size:9px;padding:1px 5px">[[ t ]]</span>
-                  <span v-for="r in insp.movimiento.remolques" :key="r" class="sub-chip ok" style="margin-right:3px;font-size:9px;padding:1px 5px">[[ r ]]</span>
+                  <span v-if="insp.movimiento.tractores && insp.movimiento.tractores.length">[[ insp.movimiento.tractores.join(', ') ]]</span>
+                  <span v-else class="text-muted">—</span>
                 </td>
                 <td>
-                  <div class="sub-chips">
-                    <span
-                      v-for="sub in insp.sub_inspecciones"
-                      :key="sub.id"
-                      class="sub-chip"
-                      :class="subChipClass(sub)"
-                      :title="sub.tipo_label + (sub.negativos > 0 ? ' — ' + sub.negativos + ' negativos' : '')"
-                      style="font-size:9px;padding:1px 5px"
-                    >
-                      [[ sub.tipo_label.split(' ').slice(-1)[0] ]]
-                      <span v-if="sub.negativos > 0">!</span>
-                    </span>
-                  </div>
+                  <span v-if="insp.movimiento.remolques && insp.movimiento.remolques.length">[[ insp.movimiento.remolques.join(', ') ]]</span>
+                  <span v-else class="text-muted">—</span>
+                </td>
+                <td
+                  v-for="t in tipos"
+                  :key="t.code"
+                  class="sub-cell"
+                  :title="t.label + ': ' + estadoTexto(insp.sub_estado[t.code]) + (insp.sub_neg[t.code] > 0 ? ' · ' + insp.sub_neg[t.code] + ' con hallazgos' : '')"
+                >
+                  <span class="sub-mark" :class="insp.sub_estado[t.code] || 'na'">
+                    [[ marca(insp.sub_estado[t.code]) ]]
+                    <span class="sub-dot" v-if="insp.sub_neg[t.code] > 0"></span>
+                  </span>
+                </td>
+                <td class="sub-cell" :title="insp.total_negativos > 0 ? insp.total_negativos + ' hallazgo(s) en total' : 'Sin hallazgos'">
+                  <span class="sub-mark" :class="insp.total_negativos > 0 ? 'count-alert' : 'count-ok'">[[ insp.total_negativos ]]</span>
                 </td>
                 <td>
                   <span class="badge"
@@ -343,44 +513,23 @@
                     }"
                   >[[ insp.estado_label ]]</span>
                 </td>
-                <td>
-                  <span v-if="insp.tiene_alertas" class="badge badge-red" style="display:inline-flex;align-items:center;gap:4px">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2.5"
-                         stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                      <line x1="12" y1="9" x2="12" y2="13"/>
-                      <line x1="12" y1="17" x2="12.01" y2="17"/>
-                    </svg>
-                    [[ insp.total_negativos ]]
-                  </span>
-                  <span v-else class="badge badge-green" style="display:inline-flex;align-items:center;gap:4px">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2.5"
-                         stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    OK
-                  </span>
-                </td>
                 <td class="cell-actions">
                   <a
                     :href="'/inspecciones/' + insp.id + '/pdf/'"
-                    class="btn-pdf-sm"
-                    title="Descargar reporte PDF"
+                    class="action-link"
+                    style="color:var(--color-text-muted)"
+                    title="Imprimir"
                     @click.stop
                   >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
                          stroke="currentColor" stroke-width="2.2"
                          stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                      <line x1="12" y1="18" x2="12" y2="12"/>
-                      <line x1="9" y1="15" x2="15" y2="15"/>
+                      <polyline points="6 9 6 2 18 2 18 9"/>
+                      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                      <rect x="6" y="14" width="12" height="8"/>
                     </svg>
-                    PDF
                   </a>
-                  <a :href="'/inspecciones/' + insp.id + '/'" class="action-link" title="Ver inspección" @click.stop>
+                  <a :href="'/inspecciones/' + insp.id + '/'" class="action-link" title="Ver" @click.stop>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
                          stroke="currentColor" stroke-width="2.2"
                          stroke-linecap="round" stroke-linejoin="round">
@@ -393,7 +542,7 @@
 
               <!-- Fila de detalle expandida -->
               <tr v-if="expandido === insp.id" class="detail-row">
-                <td :colspan="9">
+                <td :colspan="17">
                   <div class="detail-inner">
                     <div
                       v-for="sub in insp.sub_inspecciones"
@@ -420,11 +569,85 @@
             </template>
           </tbody>
         </table>
+
+        <div class="sub-legend">
+          <span class="lg"><span class="sub-mark pending"></span> Incompleta</span>
+          <span class="lg"><span class="sub-mark na">–</span> No aplica</span>
+          <span class="lg"><span class="sub-mark ok">✓</span> Completa</span>
+          <span class="lg"><span class="sub-mark ok">✓<span class="sub-dot"></span></span> Con hallazgos</span>
+        </div>
       </div>
 
       <div class="state-msg" v-if="cargando">Cargando inspecciones...</div>
       <div class="state-msg" v-if="!cargando && inspecciones.length === 0">
         No se encontraron inspecciones con los filtros seleccionados.
+      </div>
+
+      <!-- Sección de alertas -->
+      <div class="alertas-section">
+        <div class="alertas-header">
+          <h2>Alertas</h2>
+          <span class="alertas-count" v-if="alertas.length">[[ alertas.length ]]</span>
+        </div>
+        <div class="table-card" v-if="alertas.length > 0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Manifiesto</th>
+                <th>Sucursal</th>
+                <th>Alerta</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(g, i) in alertasAgrupadas" :key="i">
+                <td>[[ g.fecha ]]</td>
+                <td>
+                  <span v-if="g.manifiesto">[[ g.manifiesto ]]</span>
+                  <span v-else class="text-muted">—</span>
+                </td>
+                <td>[[ g.sucursal ]]</td>
+                <td>[[ g.tipo_label ]]</td>
+                <td>
+                  <ul class="alerta-desc-list">
+                    <li v-for="(d, j) in g.descripciones" :key="j">[[ d ]]</li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="state-msg" v-else>Sin alertas con los filtros seleccionados.</div>
+      </div>
+
+      <!-- Línea del tiempo del manifiesto seleccionado -->
+      <div class="timeline-section" v-if="filtros.manifiesto_id">
+        <div class="timeline-header">
+          <h2>Movimientos del manifiesto <span v-if="timeline.manifiesto">[[ timeline.manifiesto.folio ]]</span></h2>
+          <span v-if="timeline.manifiesto" class="timeline-route">
+            [[ timeline.manifiesto.origen ]] → [[ timeline.manifiesto.destino ]] · [[ timeline.manifiesto.estado ]]
+          </span>
+        </div>
+        <div v-if="cargandoTimeline" class="state-msg">Cargando movimientos...</div>
+        <div v-else-if="timeline.eventos.length === 0" class="state-msg">
+          Este manifiesto no tiene movimientos registrados.
+        </div>
+        <div v-if="!cargandoTimeline && timeline.eventos.length > 0" class="tl">
+          <div class="tl-item" v-for="ev in timeline.eventos" :key="ev.id">
+            <div
+              class="tl-node"
+              :class="ev.terminado ? 'done' : 'pending'"
+              :title="ev.fecha + ' · ' + ev.sucursal + ' · ' + ev.usuario + (ev.cancelado ? ' · Cancelado' : '')"
+            >
+              <svg class="tl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                   v-html="iconoSvg(ev.tipo)"></svg>
+            </div>
+            <div class="tl-label">[[ ev.tipo_label ]]</div>
+            <div class="tl-date">[[ ev.sucursal_codigo ]], [[ ev.fecha_corta ]]</div>
+          </div>
+        </div>
       </div>
 
     </section>
@@ -434,6 +657,8 @@
 <script>
 (function () {
 const API_URL = "{% url 'api_dashboard_inspecciones' %}";
+const TIMELINE_URL = "{% url 'api_manifiesto_timeline' 0 %}";
+const ALERTAS_URL = "{% url 'api_dashboard_alertas' %}";
 
 Vue.createApp({
   delimiters: ['[[', ']]'],
@@ -441,9 +666,22 @@ Vue.createApp({
     return {
       cargando: true,
       inspecciones: [],
+      alertas: [],
       manifiestos: [],
+      tipos: [
+        { code: 'GENERAL',           abbr: 'Gen',  label: 'Inspección general' },
+        { code: 'CAJA',              abbr: 'Caja', label: 'Inspección de caja' },
+        { code: 'CAJA_VACIA',        abbr: 'Vac',  label: 'Inspección de caja vacía' },
+        { code: 'LLANTAS',           abbr: 'Lla',  label: 'Inspección de llantas' },
+        { code: 'CINCO_PUNTOS',      abbr: '5pt',  label: 'Inspección 5 puntos VVTTB' },
+        { code: 'DIECINUEVE_PUNTOS', abbr: '19p',  label: 'Inspección 19 puntos de seguridad' },
+        { code: 'CANINA',            abbr: 'Can',  label: 'Inspección canina' },
+        { code: 'MEDIDAS_REMOLQUE',  abbr: 'Med',  label: 'Inspección de medidas de remolques vacíos' },
+      ],
       resumen: { total: 0, completadas: 0, en_proceso: 0, rechazadas: 0, con_alertas: 0 },
       expandido: null,
+      cargandoTimeline: false,
+      timeline: { manifiesto: null, eventos: [] },
       filtros: {
         fecha_desde: '',
         fecha_hasta: '',
@@ -457,10 +695,53 @@ Vue.createApp({
   mounted() {
     this.cargar();
   },
+  watch: {
+    'filtros.manifiesto_id'(val) {
+      if (val) {
+        this.cargarTimeline(val);
+      } else {
+        this.timeline = { manifiesto: null, eventos: [] };
+      }
+    },
+  },
+  computed: {
+    alertasAgrupadas() {
+      const grupos = [];
+      const idx = {};
+      for (const a of this.alertas) {
+        const key = (a.manifiesto || '—') + '|' + a.tipo;
+        if (!(key in idx)) {
+          idx[key] = grupos.length;
+          grupos.push({
+            manifiesto: a.manifiesto,
+            tipo: a.tipo,
+            tipo_label: a.tipo_label,
+            fecha: a.fecha,
+            fecha_iso: a.fecha_iso,
+            sucursal: a.sucursal,
+            descripciones: [],
+          });
+        }
+        const g = grupos[idx[key]];
+        g.descripciones.push(a.descripcion);
+        if (a.fecha_iso > g.fecha_iso) {
+          g.fecha = a.fecha;
+          g.fecha_iso = a.fecha_iso;
+          g.sucursal = a.sucursal;
+        }
+      }
+      grupos.sort((x, y) => {
+        const m = (x.manifiesto || '').localeCompare(y.manifiesto || '');
+        return m !== 0 ? m : y.fecha_iso.localeCompare(x.fecha_iso);
+      });
+      return grupos;
+    },
+  },
   methods: {
     async cargar() {
       this.cargando = true;
       this.expandido = null;
+      this.cargarAlertas();
       const params = new URLSearchParams();
       for (const [k, v] of Object.entries(this.filtros)) {
         if (v) params.set(k, v);
@@ -468,7 +749,17 @@ Vue.createApp({
       try {
         const res = await fetch(`${API_URL}?${params}`);
         const data = await res.json();
-        this.inspecciones = data.inspecciones;
+        this.inspecciones = data.inspecciones.map(insp => {
+          const estado = {};
+          const neg = {};
+          for (const sub of insp.sub_inspecciones) {
+            estado[sub.tipo] = sub.completada ? 'ok' : 'pending';
+            neg[sub.tipo] = sub.negativos;
+          }
+          insp.sub_estado = estado;
+          insp.sub_neg = neg;
+          return insp;
+        });
         this.resumen      = data.resumen;
         this.manifiestos  = data.manifiestos;
       } catch (e) {
@@ -484,10 +775,54 @@ Vue.createApp({
     toggleExpand(id) {
       this.expandido = this.expandido === id ? null : id;
     },
-    subChipClass(sub) {
-      if (!sub.completada) return 'pending';
-      if (sub.negativos > 0) return 'alert';
-      return 'ok';
+    marca(estado) {
+      if (estado === 'ok') return '✓';
+      if (estado === 'pending') return '';
+      return '–';
+    },
+    estadoTexto(estado) {
+      if (estado === 'ok') return 'Completa';
+      if (estado === 'pending') return 'Incompleta';
+      return 'No aplica';
+    },
+    async cargarAlertas() {
+      const params = new URLSearchParams();
+      for (const k of ['fecha_desde', 'fecha_hasta', 'sucursal_id', 'manifiesto_id', 'tipo_sub']) {
+        if (this.filtros[k]) params.set(k, this.filtros[k]);
+      }
+      try {
+        const res = await fetch(`${ALERTAS_URL}?${params}`);
+        const data = await res.json();
+        this.alertas = data.alertas;
+      } catch (e) {
+        console.error('Error cargando alertas', e);
+        this.alertas = [];
+      }
+    },
+    async cargarTimeline(id) {
+      this.cargandoTimeline = true;
+      const url = TIMELINE_URL.replace('/0/', '/' + id + '/');
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        this.timeline = { manifiesto: data.manifiesto, eventos: data.eventos };
+      } catch (e) {
+        console.error('Error cargando línea del tiempo', e);
+        this.timeline = { manifiesto: null, eventos: [] };
+      } finally {
+        this.cargandoTimeline = false;
+      }
+    },
+    iconoSvg(tipo) {
+      const iconos = {
+        ENTRADA: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>',
+        SALIDA: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+        TALLER_ENTRADA: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+        CORRECCION: '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+        INSPECCION: '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><polyline points="9 14 11 16 15 11"/>',
+      };
+      iconos.TALLER_SALIDA = iconos.TALLER_ENTRADA;
+      return iconos[tipo] || '<circle cx="12" cy="12" r="3"/>';
     },
   },
 }).mount('#dashboard-app');
