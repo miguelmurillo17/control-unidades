@@ -1229,30 +1229,9 @@ def api_dashboard_alertas(request):
                 "descripcion": f"{sub.get_tipo_display()} — {'; '.join(partes)}{extra}",
             })
 
-    # ── (TEMPORAL) Alertas ficticias "Llantas cambiadas" para demo de UI ──
-    # Sustituir cuando exista la captura de cambios de llantas en taller, que
-    # permitirá validar que las llantas inspeccionadas son las registradas.
-    _llantas_demo = [
-        ("KMLP2l3", "Los Mochis", "28/06/2026 09:15", "2026-06-28T09:15:00",
-         "Tractor T-204, posición 3: marca inspeccionada (Goodyear) ≠ registrada (Michelin)"),
-        ("KMLP2l3", "Los Mochis", "28/06/2026 09:15", "2026-06-28T09:15:00",
-         "Tractor T-204, posición 7: medida no coincide con la registrada"),
-        ("IPCD49AD", "Guadalajara", "27/06/2026 16:40", "2026-06-27T16:40:00",
-         "Remolque R-118, posición 1: sin registro de cambio autorizado en taller"),
-        ("OMR50AX4", "Monterrey", "26/06/2026 11:05", "2026-06-26T11:05:00",
-         "Tractor T-330, posición 5: cautín distinto al registrado"),
-    ]
-    for folio, suc, fecha, iso, desc in _llantas_demo:
-        alertas.append({
-            "fecha": fecha,
-            "fecha_iso": iso,
-            "manifiesto": folio,
-            "sucursal": suc,
-            "tipo": "llantas_cambiadas",
-            "tipo_label": "Llantas cambiadas",
-            "severidad": "alta",
-            "descripcion": desc,
-        })
+    # Pendiente: alerta por llantas cambiadas. Requiere capturar los cambios de
+    # llanta autorizados en taller para poder contrastar lo inspeccionado
+    # (RegistroLlanta) contra lo registrado para la unidad.
 
     alertas.sort(key=lambda a: a["fecha_iso"], reverse=True)
 
