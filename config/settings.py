@@ -10,22 +10,48 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Variables de entorno desde .env (no versionado). Ver .env.example.
+load_dotenv(BASE_DIR / '.env')
+
+
+def env_bool(nombre, default=False):
+    valor = os.environ.get(nombre)
+    if valor is None:
+        return default
+    return valor.strip().lower() in ('1', 'true', 'yes', 'on', 'si')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-&q-f8-47ho%k%1ol@r52+w8+)&=cw$n$(*p_+)49-#0uwe04kc'
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env_bool('DJANGO_DEBUG', default=True)
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            'Falta DJANGO_SECRET_KEY: es obligatoria cuando DJANGO_DEBUG=False.'
+        )
+    SECRET_KEY = 'django-insecure-clave-solo-para-desarrollo-local'
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
+    if host.strip()
+]
+if not ALLOWED_HOSTS and DEBUG:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
