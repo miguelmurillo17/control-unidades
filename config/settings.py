@@ -102,12 +102,39 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# SQLite por defecto para desarrollo local. En produccion se define DB_ENGINE
+# (por ejemplo 'postgresql') junto con el resto de las variables DB_*.
+DB_ENGINE = os.environ.get('DB_ENGINE', 'sqlite3')
+
+if DB_ENGINE == 'sqlite3':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.environ.get('DB_NAME') or BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    faltantes = [
+        nombre
+        for nombre in ('DB_NAME', 'DB_USER', 'DB_PASSWORD')
+        if not os.environ.get(nombre)
+    ]
+    if faltantes:
+        raise ImproperlyConfigured(
+            'Faltan variables de base de datos para DB_ENGINE=%s: %s'
+            % (DB_ENGINE, ', '.join(faltantes))
+        )
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.%s' % DB_ENGINE,
+            'NAME': os.environ['DB_NAME'],
+            'USER': os.environ['DB_USER'],
+            'PASSWORD': os.environ['DB_PASSWORD'],
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+            'CONN_MAX_AGE': int(os.environ.get('DB_CONN_MAX_AGE', '60')),
+        }
+    }
 
 
 # Password validation
